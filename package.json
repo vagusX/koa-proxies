@@ -2,7 +2,6 @@
   "name": "koa-proxies",
   "description": "Http Proxy Middleware for Koa@2.x/next",
   "main": "dist/koa-proxies.js",
-  "jsnext:main": "dist/koa-proxies.es2015.js",
   "scripts": {
     "build": "rimraf dist/** && NODE_ENV=production node rollup.config.js",
     "build:dev": "node rollup.config.js",
@@ -33,12 +32,13 @@
     "rollup-plugin-buble": "^0.14.0",
     "rollup-plugin-eslint": "^3.0.0",
     "rollup-plugin-node-globals": "^1.0.8",
-    "semantic-release": "^4.3.5",
+    "semantic-release": "^6.3.2",
     "standard": "^8.1.0",
     "tape": "^4.6.0",
     "validate-commit-message": "^3.0.1"
   },
   "dependencies": {
     "http-proxy": "^1.16.2"
-  }
+  },
+  "version": "0.0.0-development"
 }

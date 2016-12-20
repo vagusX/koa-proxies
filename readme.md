@@ -1,55 +1,34 @@
-# PostCSS Bgb Rgba Fallback 
+# Koa Proxies
 
-![NPM](https://img.shields.io/npm/v/postcss-bgc-rgba-fallback.svg)
-[![Build Status](https://travis-ci.org/vagusX/postcss-bgc-rgba-fallback.svg)](https://travis-ci.org/vagusX/postcss-bgc-rgba-fallback)
+![NPM](https://img.shields.io/npm/v/koa-proxies.svg)
+[![Build Status](https://travis-ci.org/vagusX/koa-proxies.svg)](https://travis-ci.org/vagusX/koa-proxies)
 
-> [PostCSS](https://github.com/postcss/postcss) plugin to polyfill background rgba for IE8
+> [Koa@2.x/next](https://github.com/koajs/koa) middlware for http proxy
 
-## Detail about polyfill for background rgba in IE8
-
-[Cross browser alpha transparent background CSS (rgba)](http://rland.me.uk/cross-browser-alpha-transparent-background-10-2011)
+Powered by [`http-proxy`](https://github.com/nodejitsu/node-http-proxy).
 
 ## Installation
 
 ```bash
-$ npm install postcss-bgc-rgba-fallback
+$ npm install koa-proxies --save
 ```
 
 ## Usage
 
 ```js
 // dependencies
-var fs = require("fs")
-var postcss = require("postcss")
-var bgcRgbaFallback = require("postcss-bgc-rgba-fallback")
+const Koa = require('koa')
+const proxy = require('koa-proxies')
 
-// css to be processed
-var css = fs.readFileSync("input.css", "utf8")
+const app = new Koa()
 
-// process css
-var output = postcss()
-  .use(bgcRgbaFallback())
-  .process(css)
-  .css
-```
-
-```css
-.foo {
-  background-color: rgba(255,102,0,0.3);
-}
-```
-
-```css
-.foo {
-  background-color: rgb(255,102,0);
-  background-color: transparent\9;
-  background-color: rgba(255,102,0,0.3);
-  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#4cFF6600, endColorstr=#4cFF6600);
-  zoom: 1;
-}
-.foo:nth-child(n) {
-  filter: none;
-}
+// middleware
+app.use(proxy('/octocat', {
+  target: 'https://api.github.com/users',    
+  changeOrigin: true,
+  agent: new HttpsProxyAgent('http://1.2.3.4:88'),
+  rewrite: path => path.replace(/^\/octocat(\/|\/\w+)?$/, '/vagusx')
+}))
 ```
 
 [![JavaScript Style Guide](https://cdn.rawgit.com/feross/standard/master/badge.svg)](https://github.com/feross/standard)
