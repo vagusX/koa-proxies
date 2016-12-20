@@ -2,6 +2,7 @@
   "name": "koa-proxies",
   "description": "Http Proxy Middleware for Koa@2.x/next",
   "main": "dist/koa-proxies.js",
+  "jsnext:main": "dist/koa-proxies.es2015.js",
   "scripts": {
     "build": "rimraf dist/** && NODE_ENV=production node rollup.config.js",
     "build:dev": "node rollup.config.js",

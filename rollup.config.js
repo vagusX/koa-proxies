@@ -24,4 +24,11 @@ rollup.rollup({
     format: 'cjs',
     dest: pkg['main']
   })
+
+  if (process.env.NODE_ENV === 'production') {
+    bundle.write({
+      dest: pkg['jsnext:main'],
+      format: 'es'
+    })
+  }
 })
