@@ -20,8 +20,8 @@ module.exports = (context, options) => (ctx, next) => {
 
   const { logs, rewrite } = options
 
-  return next().then(() => new Promise((resolve, reject) => {
-    if (logs) logger(logs, ctx)
+  return new Promise((resolve, reject) => {
+    if (logs) logger(ctx)
 
     if (typeof rewrite === 'function') {
       ctx.req.url = rewrite(ctx.req.url)
@@ -35,7 +35,7 @@ module.exports = (context, options) => (ctx, next) => {
       if (status) ctx.status = status
       resolve()
     })
-  }))
+  })
 }
 
 function logger (ctx) {
