@@ -18,10 +18,10 @@ const proxy = HttpProxy.createProxyServer()
 module.exports = (context, options) => (ctx, next) => {
   if (!ctx.req.url.startsWith(context)) return next()
 
-  const { logLevel, rewrite } = options
+  const { logs, rewrite } = options
 
   return next().then(() => new Promise((resolve, reject) => {
-    logger(logLevel, ctx)
+    if (logs) logger(logs, ctx)
 
     if (typeof rewrite === 'function') {
       ctx.req.url = rewrite(ctx.req.url)
@@ -38,8 +38,6 @@ module.exports = (context, options) => (ctx, next) => {
   }))
 }
 
-function logger (logLevel, ctx) {
-  if (logLevel) {
-    console.log('%s - %s %s', new Date().toISOString(), ctx.req.method, ctx.req.url)
-  }
+function logger (ctx) {
+  console.log('%s - %s %s', new Date().toISOString(), ctx.req.method, ctx.req.url)
 }
