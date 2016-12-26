@@ -19,6 +19,7 @@ $ npm install koa-proxies --save
 // dependencies
 const Koa = require('koa')
 const proxy = require('koa-proxies')
+const httpsProxyAgent = require('koa-proxies')
 
 const app = new Koa()
 
@@ -26,8 +27,9 @@ const app = new Koa()
 app.use(proxy('/octocat', {
   target: 'https://api.github.com/users',    
   changeOrigin: true,
-  agent: new HttpsProxyAgent('http://1.2.3.4:88'),
-  rewrite: path => path.replace(/^\/octocat(\/|\/\w+)?$/, '/vagusx')
+  agent: new httpsProxyAgent('http://1.2.3.4:88'),
+  rewrite: path => path.replace(/^\/octocat(\/|\/\w+)?$/, '/vagusx'),
+  logs: true
 }))
 ```
 

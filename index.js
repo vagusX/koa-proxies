@@ -3,7 +3,7 @@
  * Dependencies
  */
 
-import HttpProxy from 'http-proxy'
+const HttpProxy = require('http-proxy')
 
 /**
  * Constants
@@ -15,13 +15,13 @@ const proxy = HttpProxy.createProxyServer()
  * Koa Http Proxy Middleware
  */
 
-export default (context, options) => (ctx, next) => {
+module.exports = (context, options) => (ctx, next) => {
   if (!ctx.req.url.startsWith(context)) return next()
 
-  const { logLevel, rewrite } = options
+  const { logs, rewrite } = options
 
-  return next().then(() => new Promise((resolve, reject) => {
-    logger(logLevel, ctx)
+  return new Promise((resolve, reject) => {
+    if (logs) logger(ctx)
 
     if (typeof rewrite === 'function') {
       ctx.req.url = rewrite(ctx.req.url)
@@ -35,11 +35,9 @@ export default (context, options) => (ctx, next) => {
       if (status) ctx.status = status
       resolve()
     })
-  }))
+  })
 }
 
-function logger (logLevel, ctx) {
-  if (logLevel) {
-    console.log('%s - %s %s', new Date().toISOString(), ctx.req.method, ctx.req.url)
-  }
+function logger (ctx) {
+  console.log('%s - %s %s', new Date().toISOString(), ctx.req.method, ctx.req.url)
 }
