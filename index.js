@@ -3,7 +3,7 @@
  * Dependencies
  */
 
-import HttpProxy from 'http-proxy'
+const HttpProxy = require('http-proxy')
 
 /**
  * Constants
@@ -15,7 +15,7 @@ const proxy = HttpProxy.createProxyServer()
  * Koa Http Proxy Middleware
  */
 
-export default (context, options) => (ctx, next) => {
+module.exports = (context, options) => (ctx, next) => {
   if (!ctx.req.url.startsWith(context)) return next()
 
   const { logLevel, rewrite } = options
