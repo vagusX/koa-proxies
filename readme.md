@@ -19,7 +19,7 @@ $ npm install koa-proxies --save
 // dependencies
 const Koa = require('koa')
 const proxy = require('koa-proxies')
-const httpsProxyAgent = require('koa-proxies')
+const httpsProxyAgent = require('https-proxy-agent')
 
 const app = new Koa()
 
