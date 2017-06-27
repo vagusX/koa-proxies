@@ -1,4 +1,3 @@
-
 /**
  * Dependencies
  */
@@ -27,7 +26,12 @@ module.exports = (context, options) => (ctx, next) => {
       ctx.req.url = rewrite(ctx.req.url)
     }
 
-    proxy.web(ctx.req, ctx.res, options, e => {
+    let opts = options
+    if (typeof options === 'function') {
+      opts = options.call(options)
+    }
+
+    proxy.web(ctx.req, ctx.res, opts, e => {
       const status = {
         ECONNREFUSED: 503,
         ETIMEOUT: 504
