@@ -14,6 +14,18 @@ Powered by [`http-proxy`](https://github.com/nodejitsu/node-http-proxy).
 $ npm install koa-proxies --save
 ```
 
+## Options
+
+### http-proxy events
+
+```js
+options.events = {
+  error (err, req, res) { },
+  proxyReq (proxyReq, req, res) { },
+  proxyRes (proxyRes, req, res) { }
+}
+```
+
 ## Usage
 
 ```js
