@@ -12,14 +12,15 @@ const proxyTable = {
   '/octocat': 'https://api.github.com/users',
   '/api': {
     target: 'http://localhost:8111',
+    logs: true,
     headers: {
       'X_HOST_S': 'google.com'
     }
   },
   '/tenant/:id': params => {
-    console.log(params)
     return {
       target: 'http://localhost:8111',
+      logs: true,
       headers: {
         'X_HOST_S': 'google.com'
       }
@@ -48,9 +49,9 @@ const proxyTable = {
 const app = new Koa()
 
 app.use(async (ctx, next) => {
-  console.log('-----------------')
-  console.log(ctx.request.headers)
-  console.log('-----------------')
+  // console.log('-----------------')
+  // console.log(ctx.request.headers)
+  // console.log('-----------------')
   await next()
 })
 

@@ -34,11 +34,13 @@ module.exports = (context, options) => (ctx, next) => {
   const { logs, rewrite, events } = opts
 
   return new Promise((resolve, reject) => {
-    if (logs) logger(ctx)
+    ctx.req.oldPath = ctx.req.url
 
     if (typeof rewrite === 'function') {
       ctx.req.url = rewrite(ctx.req.url)
     }
+
+    if (logs) logger(ctx)
 
     if (events && typeof events === 'object') {
       Object.entries(events).forEach(([event, handler]) => {
@@ -62,5 +64,5 @@ module.exports = (context, options) => (ctx, next) => {
 }
 
 function logger (ctx) {
-  console.log('%s - %s %s', new Date().toISOString(), ctx.req.method, ctx.req.url)
+  console.log('%s - %s %s proxy to -> %s', new Date().toISOString(), ctx.req.method, ctx.req.oldPath, ctx.req.url)
 }
