@@ -32,6 +32,7 @@
     "validate-commit-message": "^3.0.1"
   },
   "dependencies": {
-    "http-proxy": "^1.16.2"
+    "http-proxy": "^1.16.2",
+    "path-match": "^1.2.4"
   }
 }

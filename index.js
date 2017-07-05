@@ -3,23 +3,32 @@
  */
 
 const HttpProxy = require('http-proxy')
+const pathMatch = require('path-match')
 
 /**
  * Constants
  */
 
 const proxy = HttpProxy.createProxyServer()
+const route = pathMatch({
+  // path-to-regexp options
+  sensitive: false,
+  strict: false,
+  end: false
+})
 
 /**
  * Koa Http Proxy Middleware
  */
-
 module.exports = (context, options) => (ctx, next) => {
-  if (!ctx.req.url.startsWith(context)) return next()
+  // create a match function
+  const match = route(context)
+  if (!match(ctx.req.url)) return next()
 
   let opts = options
   if (typeof options === 'function') {
-    opts = options.call(options)
+    const params = match(ctx.req.url)
+    opts = options.call(options, params)
   }
 
   const { logs, rewrite, events } = opts

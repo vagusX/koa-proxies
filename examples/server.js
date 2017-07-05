@@ -16,11 +16,20 @@ const proxyTable = {
       'X_HOST_S': 'google.com'
     }
   },
-  '/users': {
+  '/tenant/:id': params => {
+    console.log(params)
+    return {
+      target: 'http://localhost:8111',
+      headers: {
+        'X_HOST_S': 'google.com'
+      }
+    }
+  },
+  '/users/:id': {
     target: 'https://api.github.com',
     changeOrigin: true,
     logs: true,
-    agent: proxy ? new HttpsProxyAgent(agentUrl) : null,
+    agent: agentUrl ? new HttpsProxyAgent(agentUrl) : null,
     headers: {
       'XHostS': 'google.com'
     },
@@ -38,12 +47,11 @@ const proxyTable = {
 
 const app = new Koa()
 
-app.use((ctx, next) => {
-  return next()
-  .then(() => {
-    ctx.request.headers['X-Request-Header'] = 'test'
-    ctx.response.headers['X-Response-Header'] = 'test'
-  })
+app.use(async (ctx, next) => {
+  console.log('-----------------')
+  console.log(ctx.request.headers)
+  console.log('-----------------')
+  await next()
 })
 
 Object.keys(proxyTable).forEach(context => {
