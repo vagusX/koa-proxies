@@ -17,7 +17,12 @@ const proxy = HttpProxy.createProxyServer()
 module.exports = (context, options) => (ctx, next) => {
   if (!ctx.req.url.startsWith(context)) return next()
 
-  const { logs, rewrite } = options
+  let opts = options
+  if (typeof options === 'function') {
+    opts = options.call(options)
+  }
+
+  const { logs, rewrite, events } = opts
 
   return new Promise((resolve, reject) => {
     if (logs) logger(ctx)
@@ -26,10 +31,15 @@ module.exports = (context, options) => (ctx, next) => {
       ctx.req.url = rewrite(ctx.req.url)
     }
 
-    let opts = options
-    if (typeof options === 'function') {
-      opts = options.call(options)
+    if (events && typeof events === 'object') {
+      Object.entries(events).forEach(([event, handler]) => {
+        proxy.on(event, handler)
+      })
     }
+
+    ['logs', 'rewrite', 'events'].forEach(n => {
+      delete opts[n]
+    })
 
     proxy.web(ctx.req, ctx.res, opts, e => {
       const status = {
