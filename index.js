@@ -25,7 +25,7 @@ module.exports = (context, options) => (ctx, next) => {
   const match = route(context)
   if (!match(ctx.req.url)) return next()
 
-  let opts = options
+  let opts = Object.assign({}, options)
   if (typeof options === 'function') {
     const params = match(ctx.req.url)
     opts = options.call(options, params)
