@@ -1,7 +1,7 @@
 /**
  * Dependencies
  */
-
+const url = require('url')
 const HttpProxy = require('http-proxy')
 const pathMatch = require('path-match')
 
@@ -48,7 +48,7 @@ module.exports = (context, options) => (ctx, next) => {
       ctx.req.url = rewrite(ctx.req.url)
     }
 
-    if (logs) logger(ctx)
+    if (logs) logger(ctx, opts.target)
 
     if (events && typeof events === 'object') {
       Object.entries(events).forEach(([event, handler]) => {
@@ -67,6 +67,6 @@ module.exports = (context, options) => (ctx, next) => {
   })
 }
 
-function logger (ctx) {
-  console.log('%s - %s %s proxy to -> %s', new Date().toISOString(), ctx.req.method, ctx.req.oldPath, ctx.req.url)
+function logger (ctx, target) {
+  console.log('%s - %s %s proxy to -> %s', new Date().toISOString(), ctx.req.method, ctx.req.oldPath, url.resolve(target, ctx.req.url))
 }
