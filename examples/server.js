@@ -17,7 +17,7 @@ const proxyTable = {
       'X_HOST_S': 'google.com'
     }
   },
-  '/tenant/:id': params => {
+  '/example/:id': params => {
     return {
       target: 'http://localhost:8111',
       logs: true,
