@@ -30,8 +30,16 @@ module.exports = (context, options) => (ctx, next) => {
     const params = match(ctx.req.url)
     opts = options.call(options, params)
   }
-
+  // object-rest-spread is still in stage-3
+  // https://github.com/tc39/proposal-object-rest-spread
   const { logs, rewrite, events } = opts
+
+  const httpProxyOpts = Object.keys(opts)
+    .filter(n => ['logs', 'rewrite', 'events'].indexOf(n) < 0)
+    .reduce((prev, cur) => {
+      prev[cur] = opts[cur]
+      return prev
+    }, {})
 
   return new Promise((resolve, reject) => {
     ctx.req.oldPath = ctx.req.url
@@ -48,11 +56,7 @@ module.exports = (context, options) => (ctx, next) => {
       })
     }
 
-    ['logs', 'rewrite', 'events'].forEach(n => {
-      delete opts[n]
-    })
-
-    proxy.web(ctx.req, ctx.res, opts, e => {
+    proxy.web(ctx.req, ctx.res, httpProxyOpts, e => {
       const status = {
         ECONNREFUSED: 503,
         ETIMEOUT: 504
