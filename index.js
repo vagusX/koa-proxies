@@ -17,6 +17,8 @@ const route = pathMatch({
   end: false
 })
 
+let eventRegistered = false
+
 /**
  * Koa Http Proxy Middleware
  */
@@ -50,10 +52,11 @@ module.exports = (context, options) => (ctx, next) => {
 
     if (logs) logger(ctx, opts.target)
 
-    if (events && typeof events === 'object') {
+    if (events && typeof events === 'object' && !eventRegistered) {
       Object.entries(events).forEach(([event, handler]) => {
         proxy.on(event, handler)
       })
+      eventRegistered = true
     }
 
     proxy.web(ctx.req, ctx.res, httpProxyOpts, e => {
