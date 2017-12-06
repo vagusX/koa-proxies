@@ -27,8 +27,8 @@
   },
   "homepage": "https://github.com/vagusX/koa-proxies#readme",
   "devDependencies": {
-    "ghooks": "^1.3.2",
-    "semantic-release": "^6.3.2",
+    "ghooks": "^2.0.2",
+    "semantic-release": "^8.2.0",
     "validate-commit-message": "^3.0.1"
   },
   "dependencies": {
