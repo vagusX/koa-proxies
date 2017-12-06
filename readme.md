@@ -1,5 +1,7 @@
 # Koa Proxies
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/vagusX/koa-proxies.svg)](https://greenkeeper.io/)
+
 ![NPM](https://img.shields.io/npm/v/koa-proxies.svg)
 [![Build Status](https://travis-ci.org/vagusX/koa-proxies.svg)](https://travis-ci.org/vagusX/koa-proxies)
 [![NPM Downloads](https://img.shields.io/npm/dm/localeval.svg)](https://www.npmjs.com/package/koa-proxies)
