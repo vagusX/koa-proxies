@@ -25,7 +25,7 @@ let eventRegistered = false
 module.exports = (context, options) => (ctx, next) => {
   // create a match function
   const match = route(context)
-  if (!match(ctx.req.url)) return next()
+  if (!match(ctx.path)) return next()
 
   let opts = Object.assign({}, options)
   if (typeof options === 'function') {
