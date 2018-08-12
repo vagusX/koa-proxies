@@ -41,7 +41,7 @@ const app = new Koa()
 app.use(proxy('/octocat', {
   target: 'https://api.github.com/users',    
   changeOrigin: true,
-  agent: new httpsProxyAgent('http://1.2.3.4:88'),
+  agent: new httpsProxyAgent('http://1.2.3.4:88'), // if you need or just delete this line
   rewrite: path => path.replace(/^\/octocat(\/|\/\w+)?$/, '/vagusx'),
   logs: true
 }))

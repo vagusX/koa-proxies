@@ -9,3 +9,5 @@ test/
 
 .travis.yml
 *.config.js
+
+.vscode
