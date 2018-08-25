@@ -29,7 +29,7 @@ module.exports = (context, options) => (ctx, next) => {
 
   let opts = Object.assign({}, options)
   if (typeof options === 'function') {
-    const params = match(ctx.req.url)
+    const params = match(ctx.path)
     opts = options.call(options, params)
   }
   // object-rest-spread is still in stage-3

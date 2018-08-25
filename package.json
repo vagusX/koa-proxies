@@ -11,7 +11,8 @@
   "scripts": {
     "semantic-release": "semantic-release pre && npm publish && semantic-release post",
     "test": "nyc mocha",
-    "coverage": "nyc report --reporter=lcov --reporter=html && codecov -f .nyc_output/*.json"
+    "coverage": "nyc report --reporter=lcov --reporter=html && codecov -f .nyc_output/*.json",
+    "ci": "npm run test && npm run coverage"
   },
   "repository": {
     "type": "git",
@@ -38,6 +39,7 @@
     "mocha": "^5.2.0",
     "nyc": "^12.0.2",
     "semantic-release": "^15.1.5",
+    "sinon": "^6.1.5",
     "validate-commit-message": "^3.0.1"
   },
   "dependencies": {

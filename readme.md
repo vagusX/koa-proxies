@@ -2,6 +2,7 @@
 
 ![NPM](https://img.shields.io/npm/v/koa-proxies.svg)
 [![Build Status](https://travis-ci.org/vagusX/koa-proxies.svg)](https://travis-ci.org/vagusX/koa-proxies)
+[![Build](https://img.shields.io/codecov/c/github/vagusX/koa-proxies/master.svg)](https://circleci.com/gh/vuejs/vagusX/koa-proxies/master)
 [![NPM Downloads](https://img.shields.io/npm/dm/localeval.svg)](https://www.npmjs.com/package/koa-proxies)
 [![Greenkeeper badge](https://badges.greenkeeper.io/vagusX/koa-proxies.svg)](https://greenkeeper.io/)
 
