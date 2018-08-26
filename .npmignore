@@ -4,8 +4,12 @@
 node_modules/
 npm-debug.log
 
-lib/
 test/
 
 .travis.yml
 *.config.js
+
+.vscode
+
+coverage
+.nyc_output

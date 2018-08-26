@@ -6,11 +6,16 @@ cache:
 notifications:
   email: false
 node_js:
+  - '10'
+  - '9'
   - '8'
 before_script:
   - npm prune
+
 after_success:
-  - npm run semantic-release
+  - npm run coverage
+  - npm install -g travis-deploy-once
+  - travis-deploy-once "npm run semantic-release"
 branches:
   only:
     - master

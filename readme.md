@@ -1,7 +1,9 @@
 # Koa Proxies
 
 ![NPM](https://img.shields.io/npm/v/koa-proxies.svg)
-[![Build Status](https://travis-ci.org/vagusX/koa-proxies.svg)](https://travis-ci.org/vagusX/koa-proxies)
+[![TavisCI Build](https://img.shields.io/travis/vagusX/koa-proxies.svg)](https://travis-ci.org/vagusX/koa-proxies)
+[![CircieCI Build](https://img.shields.io/circleci/project/github/vagusX/koa-proxies.svg)](https://circleci.com/gh/vagusX/koa-proxies)
+[![Coverage](https://img.shields.io/codecov/c/github/vagusX/koa-proxies.svg)](https://codecov.io/gh/vagusX/koa-proxies)
 [![NPM Downloads](https://img.shields.io/npm/dm/localeval.svg)](https://www.npmjs.com/package/koa-proxies)
 [![Greenkeeper badge](https://badges.greenkeeper.io/vagusX/koa-proxies.svg)](https://greenkeeper.io/)
 
@@ -41,7 +43,7 @@ const app = new Koa()
 app.use(proxy('/octocat', {
   target: 'https://api.github.com/users',    
   changeOrigin: true,
-  agent: new httpsProxyAgent('http://1.2.3.4:88'),
+  agent: new httpsProxyAgent('http://1.2.3.4:88'), // if you need or just delete this line
   rewrite: path => path.replace(/^\/octocat(\/|\/\w+)?$/, '/vagusx'),
   logs: true
 }))
