@@ -4,7 +4,7 @@ const sinon = require('sinon')
 
 const proxy = require('..')
 
-const { startServer, sleep, timeoutServer } = require('./util')
+const { startServer, sleep } = require('./util')
 
 chai.use(chaiHttp)
 const expect = chai.expect
