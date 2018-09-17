@@ -7,6 +7,7 @@
     "proxy",
     "proxies"
   ],
+  "version": "1.0.0",
   "main": "index.js",
   "scripts": {
     "semantic-release": "semantic-release pre && npm publish && semantic-release post",
