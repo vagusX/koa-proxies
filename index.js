@@ -34,7 +34,10 @@ module.exports = (context, options) => (ctx, next) => {
   }
   // object-rest-spread is still in stage-3
   // https://github.com/tc39/proposal-object-rest-spread
-  const { logs, rewrite, events } = opts
+  const { logs, rewrite, events, exclude } =  opts
+  if (typeof exclude === 'function' && exclude(request)) {
+    return next()
+  }
 
   const httpProxyOpts = Object.keys(opts)
     .filter(n => ['logs', 'rewrite', 'events'].indexOf(n) < 0)
