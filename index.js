@@ -58,7 +58,13 @@ module.exports = (context, options) => (ctx, next) => {
       })
       eventRegistered = true
     }
-
+    // Let the promise be solved correctly after the proxy.web. 
+    // The solution comes from https://github.com/nodejitsu/node-http-proxy/issues/951#issuecomment-179904134
+    ctx.res.on('close', () => {
+      reject(new Error(`Http response closed while proxying ${ctx.req.oldPath}`));
+    });
+    ctx.res.on('finish', () => resolve());
+    
     proxy.web(ctx.req, ctx.res, httpProxyOpts, e => {
       const status = {
         ECONNREFUSED: 503,
