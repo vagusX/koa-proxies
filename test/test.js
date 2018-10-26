@@ -26,6 +26,9 @@ describe('tests for koa proxies', () => {
           await sleep(2000)
           ctx.body = { data: 'timeout' }
           break
+        case '/500':
+          ctx.status = 500
+          break
         default:
           return next()
       }
@@ -89,6 +92,20 @@ describe('tests for koa proxies', () => {
     expect(ret.body).to.eqls({ data: 'Hello test' })
   })
 
+  it('500', async () => {
+    const proxyMiddleware = proxy('/octocat', {
+      target: 'http://127.0.0.1:12306',
+      changeOrigin: true,
+      rewrite: path => path.replace(/^\/octocat(\/|\/\w+)?$/, '/500'),
+      logs: true
+    })
+
+    server = startServer(3000, proxyMiddleware)
+
+    const ret = await chai.request(server).get('/octocat')
+    expect(ret).to.have.status(500)
+  })
+
   it('503', async () => {
     const proxyMiddleware = proxy('/octocat', {
       // wrong port cause ECONNREFUSED
@@ -141,7 +158,7 @@ describe('tests for koa proxies', () => {
     sinon.assert.calledOnce(proxyResSpy)
   })
 
-  it('test using github API', async () => {
+  it.skip('test using github API', async () => {
     const proxyMiddleware = proxy('/octocat', {
       target: 'https://api.github.com/users',
       changeOrigin: true,
