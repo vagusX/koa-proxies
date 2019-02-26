@@ -47,7 +47,7 @@ module.exports = (context, options) => (ctx, next) => {
     ctx.req.oldPath = ctx.req.url
 
     if (typeof rewrite === 'function') {
-      ctx.req.url = rewrite(ctx.req.url)
+      ctx.req.url = rewrite(ctx.req.url, ctx)
     }
 
     if (logs) logger(ctx, opts.target)
