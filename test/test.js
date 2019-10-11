@@ -147,7 +147,7 @@ describe('tests for koa proxies', () => {
       logs: true,
       events: {
         proxyReq: proxyReqSpy,
-        proxyRes: proxyResSpy,
+        proxyRes: proxyResSpy
       }
     })
 
