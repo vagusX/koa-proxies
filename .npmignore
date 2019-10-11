@@ -1,5 +1,6 @@
 .gitignore
 .editorconfig
+.eslintrc.yml
 
 node_modules/
 npm-debug.log
@@ -13,3 +14,5 @@ test/
 
 coverage
 .nyc_output
+examples/
+.circleci/
