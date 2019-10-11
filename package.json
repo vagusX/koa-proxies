@@ -12,16 +12,12 @@
     "semantic-release": "semantic-release",
     "test": "nyc mocha",
     "coverage": "nyc report --reporter=lcov --reporter=html && codecov -f .nyc_output/*.json",
-    "ci": "npm run test && npm run coverage"
+    "ci": "npm run test && npm run coverage",
+    "lint": "eslint index.js test/"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/vagusX/koa-proxies.git"
-  },
-  "config": {
-    "ghooks": {
-      "commit-msg": "node ./node_modules/.bin/validate-commit-msg"
-    }
   },
   "author": "vagusX",
   "license": "MIT",
@@ -29,17 +25,36 @@
     "url": "https://github.com/vagusX/koa-proxies/issues"
   },
   "homepage": "https://github.com/vagusX/koa-proxies#readme",
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged",
+      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
+    }
+  },
+  "lint-staged": {
+    "*.js": "npm run lint"
+  },
   "devDependencies": {
+    "@commitlint/cli": "^8.2.0",
+    "@commitlint/config-conventional": "^8.2.0",
     "chai": "^4.1.2",
     "chai-http": "^4.0.0",
     "codecov": "^3.0.4",
+    "eslint": "^6.5.1",
+    "eslint-config-standard": "^14.1.0",
+    "eslint-plugin-import": "^2.18.2",
+    "eslint-plugin-mocha": "^6.1.1",
+    "eslint-plugin-node": "^10.0.0",
+    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-standard": "^4.0.1",
     "ghooks": "^2.0.2",
+    "husky": "^3.0.8",
     "koa": "^2.5.2",
+    "lint-staged": "^10.0.0-0",
     "mocha": "^5.2.0",
     "nyc": "^13.2.0",
     "semantic-release": "^15.1.5",
-    "sinon": "^7.2.4",
-    "validate-commit-message": "^3.0.1"
+    "sinon": "^7.2.4"
   },
   "dependencies": {
     "http-proxy": "^1.16.2",

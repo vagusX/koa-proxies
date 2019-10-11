@@ -1,7 +1,7 @@
 /**
  * Dependencies
  */
-const url = require('url')
+const { URL } = require('url')
 const HttpProxy = require('http-proxy')
 const pathMatch = require('path-match')
 
@@ -62,8 +62,9 @@ module.exports = (context, options) => (ctx, next) => {
     // Let the promise be solved correctly after the proxy.web.
     // The solution comes from https://github.com/nodejitsu/node-http-proxy/issues/951#issuecomment-179904134
     ctx.res.on('close', () => {
-      reject(new Error(`Http response closed while proxying ${ctx.req.oldPath}`));
-    });
+      reject(new Error(`Http response closed while proxying ${ctx.req.oldPath}`))
+    })
+
     ctx.res.on('finish', () => {
       resolve()
     })
@@ -82,5 +83,5 @@ module.exports = (context, options) => (ctx, next) => {
 module.exports.proxy = proxy
 
 function logger (ctx, target) {
-  console.log('%s - %s %s proxy to -> %s', new Date().toISOString(), ctx.req.method, ctx.req.oldPath, url.resolve(target, ctx.req.url))
+  console.log('%s - %s %s proxy to -> %s', new Date().toISOString(), ctx.req.method, ctx.req.oldPath, new URL(ctx.req.url, target))
 }

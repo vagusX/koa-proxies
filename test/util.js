@@ -2,10 +2,10 @@ const Koa = require('koa')
 
 module.exports = {
   startServer,
-  sleep,
+  sleep
 }
 
-function startServer(port, ...middlewares) {
+function startServer (port, ...middlewares) {
   const app = new Koa()
   middlewares.forEach(middleware => {
     app.use(middleware)
@@ -13,6 +13,6 @@ function startServer(port, ...middlewares) {
   return app.listen(port)
 }
 
-function sleep(ms) {
+function sleep (ms) {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
