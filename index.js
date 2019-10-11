@@ -83,5 +83,5 @@ module.exports = (context, options) => (ctx, next) => {
 module.exports.proxy = proxy
 
 function logger (ctx, target) {
-  console.log('%s - %s %s proxy to -> %s', new Date().toISOString(), ctx.req.method, ctx.req.oldPath, new URL(target, ctx.req.url))
+  console.log('%s - %s %s proxy to -> %s', new Date().toISOString(), ctx.req.method, ctx.req.oldPath, new URL(ctx.req.url, target))
 }
