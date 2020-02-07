@@ -51,7 +51,7 @@ module.exports = (context, options) => (ctx, next) => {
     }
 
     if (logs) {
-      typeof logs === "function" ? logs(ctx, opts.target) : logger(ctx, opts.target)
+      typeof logs === 'function' ? logs(ctx, opts.target) : logger(ctx, opts.target)
     }
     if (events && typeof events === 'object' && !eventRegistered) {
       Object.entries(events).forEach(([event, handler]) => {
