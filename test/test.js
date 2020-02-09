@@ -1,11 +1,13 @@
 const chai = require('chai')
 const chaiHttp = require('chai-http')
+const sinonChai = require('sinon-chai')
 const sinon = require('sinon')
 
 const proxy = require('..')
 
 const { startServer, sleep } = require('./util')
 
+chai.use(sinonChai)
 chai.use(chaiHttp)
 const expect = chai.expect
 
@@ -156,6 +158,39 @@ describe('tests for koa proxies', () => {
     await chai.request(server).get('/200')
     sinon.assert.calledOnce(proxyReqSpy)
     sinon.assert.calledOnce(proxyResSpy)
+  })
+
+  it('log', async () => {
+    // spies
+    sinon.spy(console, 'log')
+
+    const proxyMiddleware = proxy('/200', {
+      target: 'http://127.0.0.1:12306',
+      changeOrigin: true,
+      logs: true,
+    })
+
+    server = startServer(3000, proxyMiddleware)
+
+    await chai.request(server).get('/200')
+    expect(console.log).to.be.called
+    console.log.restore()
+  })
+
+  it('log function', async () => {
+    // spies
+    const logSpy = sinon.spy()
+
+    const proxyMiddleware = proxy('/200', {
+      target: 'http://127.0.0.1:12306',
+      changeOrigin: true,
+      logs: logSpy
+    })
+
+    server = startServer(3000, proxyMiddleware)
+
+    await chai.request(server).get('/200')
+    sinon.assert.calledOnce(logSpy)
   })
 
   it.skip('test using github API', async () => {
