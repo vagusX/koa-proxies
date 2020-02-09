@@ -8,6 +8,7 @@
     "proxies"
   ],
   "main": "index.js",
+  "typings": "index.d.ts",
   "scripts": {
     "semantic-release": "semantic-release",
     "test": "nyc mocha",
@@ -37,6 +38,7 @@
   "devDependencies": {
     "@commitlint/cli": "^8.2.0",
     "@commitlint/config-conventional": "^8.2.0",
+    "@types/koa": "^2.11.0",
     "chai": "^4.1.2",
     "chai-http": "^4.0.0",
     "codecov": "^3.0.4",
