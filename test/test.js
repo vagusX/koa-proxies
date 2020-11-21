@@ -162,18 +162,18 @@ describe('tests for koa proxies', () => {
 
   it('log', async () => {
     // spies
-    sinon.spy(console, 'log')
+    const logSpy = sinon.spy(console, 'log')
 
     const proxyMiddleware = proxy('/200', {
       target: 'http://127.0.0.1:12306',
       changeOrigin: true,
-      logs: true,
+      logs: true
     })
 
     server = startServer(3000, proxyMiddleware)
 
     await chai.request(server).get('/200')
-    expect(console.log).to.be.called
+    sinon.assert.called(logSpy)
     console.log.restore()
   })
 
