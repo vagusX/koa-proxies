@@ -8,6 +8,7 @@
     "proxies"
   ],
   "main": "index.js",
+  "typings": "index.d.ts",
   "scripts": {
     "semantic-release": "semantic-release",
     "test": "nyc mocha",
@@ -37,6 +38,7 @@
   "devDependencies": {
     "@commitlint/cli": "^8.2.0",
     "@commitlint/config-conventional": "^8.2.0",
+    "@types/koa": "^2.11.0",
     "chai": "^4.1.2",
     "chai-http": "^4.0.0",
     "codecov": "^3.0.4",
@@ -44,17 +46,18 @@
     "eslint-config-standard": "^14.1.0",
     "eslint-plugin-import": "^2.18.2",
     "eslint-plugin-mocha": "^6.1.1",
-    "eslint-plugin-node": "^10.0.0",
+    "eslint-plugin-node": "^11.0.0",
     "eslint-plugin-promise": "^4.2.1",
     "eslint-plugin-standard": "^4.0.1",
     "ghooks": "^2.0.2",
-    "husky": "^3.0.8",
+    "husky": "^4.0.2",
     "koa": "^2.5.2",
     "lint-staged": "^10.0.0-0",
     "mocha": "^6.0.0",
     "nyc": "^12.0.2",
     "semantic-release": "^15.1.5",
-    "sinon": "^8.0.0"
+    "sinon": "^7.2.4",
+    "sinon-chai": "^3.4.0"
   },
   "dependencies": {
     "http-proxy": "^1.16.2",
