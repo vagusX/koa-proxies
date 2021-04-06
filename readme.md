@@ -29,6 +29,17 @@ options.events = {
 }
 ```
 
+### log option
+```js
+// enable log
+options.logs = true; // or false
+
+// custom log function
+options.logs = (ctx, target) {
+  console.log('%s - %s %s proxy to -> %s', new Date().toISOString(), ctx.req.method, ctx.req.oldPath, new URL(ctx.req.url, target))
+} 
+```
+
 ## Usage
 
 ```js

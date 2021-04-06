@@ -22,9 +22,9 @@ let eventRegistered = false
 /**
  * Koa Http Proxy Middleware
  */
-module.exports = (context, options) => (ctx, next) => {
+module.exports = (path, options) => (ctx, next) => {
   // create a match function
-  const match = route(context)
+  const match = route(path)
   if (!match(ctx.path)) return next()
 
   let opts = Object.assign({}, options)
@@ -50,8 +50,9 @@ module.exports = (context, options) => (ctx, next) => {
       ctx.req.url = rewrite(ctx.req.url, ctx)
     }
 
-    if (logs) logger(ctx, opts.target)
-
+    if (logs) {
+      typeof logs === 'function' ? logs(ctx, opts.target) : logger(ctx, opts.target)
+    }
     if (events && typeof events === 'object' && !eventRegistered) {
       Object.entries(events).forEach(([event, handler]) => {
         proxy.on(event, handler)
