@@ -30,7 +30,7 @@ module.exports = (path, options) => (ctx, next) => {
   let opts = Object.assign({}, options)
   if (typeof options === 'function') {
     const params = match(ctx.path)
-    opts = options.call(options, params)
+    opts = options.call(options, params, ctx)
   }
   // object-rest-spread is still in stage-3
   // https://github.com/tc39/proposal-object-rest-spread
