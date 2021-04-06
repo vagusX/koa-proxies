@@ -25,12 +25,14 @@ let eventRegistered = false
 module.exports = (path, options) => (ctx, next) => {
   // create a match function
   const match = route(path)
-  if (!match(ctx.path)) return next()
+  const params = match(ctx.path)
+  if (!params) return next()
 
-  let opts = Object.assign({}, options)
+  let opts
   if (typeof options === 'function') {
-    const params = match(ctx.path)
     opts = options.call(options, params, ctx)
+  } else {
+    opts = Object.assign({}, options)
   }
   // object-rest-spread is still in stage-3
   // https://github.com/tc39/proposal-object-rest-spread

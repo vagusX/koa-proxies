@@ -1,7 +1,7 @@
 import { IncomingMessage, ServerResponse, ClientRequest } from 'http';
 import * as Koa from 'koa';
 
-declare function KoaProxies(path: string | RegExp | (string | RegExp)[], options: KoaProxies.IKoaProxiesOptions): Koa.Middleware;
+declare function KoaProxies(path: string | RegExp | (string | RegExp)[], options: KoaProxies.IKoaProxiesOptions | KoaProxies.IKoaProxiesOptionsFunc): Koa.Middleware;
 
 declare namespace KoaProxies {
   interface IKoaProxiesOptions {
@@ -16,6 +16,8 @@ declare namespace KoaProxies {
       proxyRes?: (proxyRes: IncomingMessage, req: IncomingMessage, res: ServerResponse) => void;
     }
   }
+
+  type IKoaProxiesOptionsFunc = (params: { [key: string]: string }, ctx: Koa.Context) => IKoaProxiesOptions;
 }
 
 export = KoaProxies;
