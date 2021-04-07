@@ -60,4 +60,22 @@ app.use(proxy('/octocat', {
 }))
 ```
 
+### Attention
+
+Please make sure that `koa-proxies` is in front of `koa-bodyparser` to avoid this [issue 55](https://github.com/vagusX/koa-proxies/issues/55)
+
+```js
+const Koa = require('koa')
+const app = new Koa()
+const proxy = require('koa-proxies')
+const bodyParser = require('koa-bodyparser')
+
+app.use(proxy('/user', {
+  target: 'http://example.com',    
+  changeOrigin: true
+}))
+
+app.use(bodyParser())
+```
+
 [![JavaScript Style Guide](https://cdn.rawgit.com/feross/standard/master/badge.svg)](https://github.com/feross/standard)
