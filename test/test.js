@@ -77,6 +77,60 @@ describe('tests for koa proxies', () => {
     expect(ret2).to.have.status(404)
   })
 
+  it('test for options function', async () => {
+    // supports https://github.com/vagusX/koa-proxies/issues/17
+    const pathRegex = /^\/octocat(\/|\/\w+)?$/
+    const proxyMiddleware = proxy('/octocat', (params, ctx) => {
+      if (ctx.headers.foo === 'bar') {
+        return {
+          target: 'http://127.0.0.1:12306',
+          changeOrigin: true,
+          rewrite: path => path.replace(/^\/octocat(\/|\/\w+)?$/, '/500'),
+          logs: true
+        }
+      }
+
+      return {
+        target: 'http://127.0.0.1:12306',
+        changeOrigin: true,
+        rewrite: path => {
+          if (pathRegex.test(path)) {
+            const [, subpath] = pathRegex.exec(path)
+            if (subpath && subpath.startsWith('/bar')) {
+              return '/200'
+            }
+            return path.replace(/^\/octocat(\/|\/\w+)?$/, '/204')
+          } else {
+            return path
+          }
+        },
+        logs: true
+      }
+    })
+
+    server = startServer(3000, proxyMiddleware)
+    const requester = chai.request(server).keepOpen()
+
+    const ret = await requester.get('/octocat')
+    expect(ret).to.have.status(204)
+    expect(ret).to.have.header('x-special-header', 'you see')
+    expect(ret.body).to.eqls({})
+
+    const ret1 = await requester.get('/octocat/bar')
+    expect(ret1).to.have.status(200)
+    expect(ret1.body).to.eqls({ data: 'foo' })
+
+    const ret2 = await requester.get('/notfound')
+    expect(ret2).to.have.status(404)
+
+    // headers matched for 500
+    const ret3 = await chai.request(server)
+      .post('/octocat')
+      .set('foo', 'bar')
+      .send({ body: 'test' })
+    expect(ret3).to.have.status(500)
+  })
+
   it('should bypass when path not matched', async () => {
     const proxyMiddleware = proxy('/octocat', {
       target: 'http://127.0.0.1:12306',

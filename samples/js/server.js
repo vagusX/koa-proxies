@@ -4,7 +4,7 @@ const history = require('koa-connect-history-api-fallback')
 const statics = require('koa-static')
 const HttpsProxyAgent = require('https-proxy-agent')
 
-const proxy = require('..')
+const proxy = require('../..')
 
 const agentUrl = process.env.http_proxy || process.env.https_proxy
 
@@ -14,7 +14,7 @@ const proxyTable = {
     target: 'http://localhost:8111',
     logs: true,
     headers: {
-      'X_HOST_S': 'google.com'
+      X_HOST_S: 'google.com'
     }
   },
   '/example/:id': params => {
@@ -22,7 +22,7 @@ const proxyTable = {
       target: 'http://localhost:8111',
       logs: true,
       headers: {
-        'X_HOST_S': 'google.com'
+        X_HOST_S: 'google.com'
       }
     }
   },
@@ -32,7 +32,7 @@ const proxyTable = {
     logs: true,
     agent: agentUrl ? new HttpsProxyAgent(agentUrl) : null,
     headers: {
-      'XHostS': 'google.com'
+      XHostS: 'google.com'
     },
     rewrite: path => path.replace(/\/node$/, '/vagusx'),
     events: {
