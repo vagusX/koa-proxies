@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.12.1](https://github.com/vagusX/koa-proxies/compare/v0.12.0...v0.12.1) (2021-04-08)
+
+
+### Bug Fixes
+
+* add samples to npm ignore ([3a623f2](https://github.com/vagusX/koa-proxies/commit/3a623f231a6c3844f7e785cc33c1fb37398ec276))
+
 ### [0.12.0](https://github.com/vagusX/koa-proxies/compare/v0.11.0...v0.12.0) (2021-04-08)
 
 
