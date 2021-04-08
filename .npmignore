@@ -14,5 +14,5 @@ test/
 
 coverage
 .nyc_output
-examples/
+samples/
 .circleci/
