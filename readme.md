@@ -1,8 +1,8 @@
 # Koa Proxies
 
 ![NPM](https://img.shields.io/npm/v/koa-proxies.svg)
-[![TavisCI Build](https://img.shields.io/travis/vagusX/koa-proxies.svg)](https://travis-ci.org/vagusX/koa-proxies)
-[![CircieCI Build](https://img.shields.io/circleci/project/github/vagusX/koa-proxies.svg)](https://circleci.com/gh/vagusX/koa-proxies)
+
+[![Node.js CI](https://github.com/vagusX/koa-proxies/actions/workflows/node.js.yml/badge.svg)](https://github.com/vagusX/koa-proxies/actions/workflows/node.js.yml)
 [![Coverage](https://img.shields.io/codecov/c/github/vagusX/koa-proxies.svg)](https://codecov.io/gh/vagusX/koa-proxies)
 [![NPM Downloads](https://img.shields.io/npm/dm/koa-proxies.svg)](https://www.npmjs.com/package/koa-proxies)
 [![Greenkeeper badge](https://badges.greenkeeper.io/vagusX/koa-proxies.svg)](https://greenkeeper.io/)
