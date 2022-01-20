@@ -84,12 +84,14 @@ module.exports = (path, options) => {
         Object
           .entries(events)
           .forEach(([event, handler]) => {
-            if (proxyEventHandlers[event] == null) {
+            const eventHandler = proxyEventHandlers[event]
+
+            if (eventHandler == null) {
               setupProxyEventHandler(event)
             }
 
-            if (!proxyEventHandlers[event].has(middlewareId)) {
-              proxyEventHandlers[event].set(middlewareId, handler)
+            if (typeof eventHandler === 'object' && !eventHandler.has(middlewareId)) {
+              eventHandler.set(middlewareId, handler)
             }
           })
       }
