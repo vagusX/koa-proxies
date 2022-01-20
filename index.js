@@ -22,6 +22,22 @@ const REQUEST_IDENTIFIER = '__KOA_PROXIES_MIDDLEWARE_ID__'
 
 const proxyEventHandlers = {}
 
+function setupProxyEventHandler (event) {
+  if (['error', 'proxyReq', 'proxyRes'].indexOf(event) < 0) {
+    return
+  }
+
+  proxyEventHandlers[event] = new Map()
+
+  proxy.on(event, (...args) => {
+    const req = args[1]
+    const eventHandler = proxyEventHandlers[event].get(req[REQUEST_IDENTIFIER])
+    if (typeof eventHandler === 'function') {
+      eventHandler(...args)
+    }
+  })
+}
+
 /**
  * Koa Http Proxy Middleware
  */
@@ -65,14 +81,17 @@ module.exports = (path, options) => {
       if (events && typeof events === 'object') {
         ctx.req[REQUEST_IDENTIFIER] = middlewareId
 
-        Object.entries(events).forEach(([event, handler]) => {
-          if (proxyEventHandlers[event] == null) {
-            proxyEventHandlers[event] = new Map()
-          }
-          if (!proxyEventHandlers[event].has(middlewareId)) {
-            proxyEventHandlers[event].set(middlewareId, handler)
-          }
-        })
+        Object
+          .entries(events)
+          .forEach(([event, handler]) => {
+            if (proxyEventHandlers[event] == null) {
+              setupProxyEventHandler(event)
+            }
+
+            if (!proxyEventHandlers[event].has(middlewareId)) {
+              proxyEventHandlers[event].set(middlewareId, handler)
+            }
+          })
       }
 
       // Let the promise be solved correctly after the proxy.web.

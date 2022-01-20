@@ -192,7 +192,7 @@ describe('tests for koa proxies', () => {
       })
   }).timeout(200)
 
-  it('events', async () => {
+  it('events for a single middleware', async () => {
     // spies
     const proxyReqSpy = sinon.spy()
     const proxyResSpy = sinon.spy()
@@ -212,6 +212,44 @@ describe('tests for koa proxies', () => {
     await chai.request(server).get('/200')
     sinon.assert.calledOnce(proxyReqSpy)
     sinon.assert.calledOnce(proxyResSpy)
+  })
+
+  it('events for multiple middleware', async () => {
+    // spies
+    const proxyOneReqSpy = sinon.spy()
+    const proxyOneResSpy = sinon.spy()
+    const proxyTwoReqSpy = sinon.spy()
+    const proxyTwoResSpy = sinon.spy()
+
+    const proxyOneMiddleware = proxy('/200', {
+      target: 'http://127.0.0.1:12306',
+      changeOrigin: true,
+      logs: true,
+      events: {
+        proxyReq: proxyOneReqSpy,
+        proxyRes: proxyOneResSpy
+      }
+    })
+
+    const proxyTwoMiddleware = proxy('/204', {
+      target: 'http://127.0.0.1:12306',
+      changeOrigin: true,
+      logs: true,
+      events: {
+        proxyReq: proxyTwoReqSpy,
+        proxyRes: proxyTwoResSpy
+      }
+    })
+
+    server = startServer(3000, proxyOneMiddleware, proxyTwoMiddleware)
+
+    await chai.request(server).get('/200')
+    sinon.assert.calledOnce(proxyOneReqSpy)
+    sinon.assert.calledOnce(proxyOneResSpy)
+
+    await chai.request(server).get('/204')
+    sinon.assert.calledOnce(proxyTwoReqSpy)
+    sinon.assert.calledOnce(proxyTwoResSpy)
   })
 
   it('log', async () => {
