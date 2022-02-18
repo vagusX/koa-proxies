@@ -36,6 +36,8 @@ function setupProxyEventHandler (event) {
       eventHandler(...args)
     }
   })
+
+  return proxyEventHandlers[event]
 }
 
 /**
@@ -84,11 +86,9 @@ module.exports = (path, options) => {
         Object
           .entries(events)
           .forEach(([event, handler]) => {
-            const eventHandler = proxyEventHandlers[event]
-
-            if (eventHandler == null) {
-              setupProxyEventHandler(event)
-            }
+            const eventHandler = proxyEventHandlers[event] == null
+              ? setupProxyEventHandler(event)
+              : proxyEventHandlers[event]
 
             if (typeof eventHandler === 'object' && !eventHandler.has(middlewareId)) {
               eventHandler.set(middlewareId, handler)
