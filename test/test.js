@@ -252,6 +252,25 @@ describe('tests for koa proxies', () => {
     sinon.assert.calledOnce(proxyTwoResSpy)
   })
 
+  it('ignore events for middleware if they are not a valid event', async () => {
+    // spies
+    const proxyInvalidEventSpy = sinon.spy()
+
+    const proxyMiddleware = proxy('/200', {
+      target: 'http://127.0.0.1:12306',
+      changeOrigin: true,
+      logs: true,
+      events: {
+        proxyInvalid: proxyInvalidEventSpy
+      }
+    })
+
+    server = startServer(3000, proxyMiddleware)
+
+    await chai.request(server).get('/200')
+    sinon.assert.notCalled(proxyInvalidEventSpy)
+  })
+
   it('log', async () => {
     // spies
     const logSpy = sinon.spy(console, 'log')
