@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.12.2](https://github.com/vagusX/koa-proxies/compare/v0.12.1...v0.12.2) (2022-02-23)
+
+
+### Bug Fixes
+
+* support multiple event listeners ([#66](https://github.com/vagusX/koa-proxies/issues/66)) ([94e2f16](https://github.com/vagusX/koa-proxies/commit/94e2f162bdc52bb72c7ebc50712a54c914eb8ef5))
+
 ### [0.12.1](https://github.com/vagusX/koa-proxies/compare/v0.12.0...v0.12.1) (2021-04-08)
 
 
