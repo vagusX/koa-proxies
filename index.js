@@ -106,7 +106,13 @@ module.exports = (path, options) => {
         resolve()
       })
 
-      proxy.web(ctx.req, ctx.res, httpProxyOpts, e => {
+      proxy.web(ctx.req, ctx.res, httpProxyOpts, (e, ...args) => {
+        const errorHandler = proxyEventHandlers.error && proxyEventHandlers.error.get(ctx.req[REQUEST_IDENTIFIER])
+
+        if (typeof errorHandler === 'function') {
+          errorHandler(e, ...args) // If this error handler sends the headers, the ctx.status setter below is ignored
+        }
+
         const status = {
           ECONNREFUSED: 503,
           ETIMEOUT: 504
