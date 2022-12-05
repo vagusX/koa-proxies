@@ -31,6 +31,9 @@ describe('tests for koa proxies', () => {
         case '/500':
           ctx.status = 500
           break
+        case '/error':
+          ctx.req.destroy()
+          break
         default:
           return next()
       }
@@ -269,6 +272,43 @@ describe('tests for koa proxies', () => {
 
     await chai.request(server).get('/200')
     sinon.assert.notCalled(proxyInvalidEventSpy)
+  })
+
+  describe('when an error handler is specified', () => {
+    let options
+
+    beforeEach(() => {
+      options = {
+        target: 'http://127.0.0.1:12306',
+        changeOrigin: true,
+        events: {}
+      }
+
+      const proxyMiddleware = proxy('/error', options)
+
+      server = startServer(3000, proxyMiddleware)
+    })
+
+    it('does not set the status in the default error handler when events.error is specified and ends the response', async () => {
+      options.events.error = sinon.stub().callsFake((e, req, res) => {
+        res.writeHead(505, 'Something went wrong. And we are reporting a custom error message.').end()
+      })
+
+      const ret = await chai.request(server).get('/error')
+      expect(ret).to.have.status(505)
+      expect(ret.res.statusMessage).to.eql('Something went wrong. And we are reporting a custom error message.')
+
+      sinon.assert.calledOnce(options.events.error)
+    })
+
+    it('does set the status in the default error handler when events.error is specified but does not end the response', async () => {
+      options.events.error = sinon.spy()
+
+      const ret = await chai.request(server).get('/error')
+      expect(ret).to.have.status(500)
+
+      sinon.assert.calledOnce(options.events.error)
+    })
   })
 
   it('log', async () => {
