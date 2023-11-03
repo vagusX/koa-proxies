@@ -3,8 +3,10 @@
  */
 const { URL } = require('url')
 const HttpProxy = require('http-proxy')
+const httpProxyCommonUtil = require('http-proxy/lib/http-proxy/common')
 const pathMatch = require('path-match')
 const { v4: uuidv4 } = require('uuid')
+const url = require('url')
 
 /**
  * Constants
@@ -55,19 +57,14 @@ module.exports = (path, options) => {
     let opts
     if (typeof options === 'function') {
       opts = options.call(options, params, ctx)
+      if (opts === false) {
+        return next()
+      }
     } else {
       opts = Object.assign({}, options)
     }
-    // object-rest-spread is still in stage-3
-    // https://github.com/tc39/proposal-object-rest-spread
-    const { logs, rewrite, events } = opts
 
-    const httpProxyOpts = Object.keys(opts)
-      .filter(n => ['logs', 'rewrite', 'events'].indexOf(n) < 0)
-      .reduce((prev, cur) => {
-        prev[cur] = opts[cur]
-        return prev
-      }, {})
+    const { logs, rewrite, events, ...httpProxyOpts } = opts
 
     return new Promise((resolve, reject) => {
       ctx.req.oldPath = ctx.req.url
@@ -77,7 +74,7 @@ module.exports = (path, options) => {
       }
 
       if (logs) {
-        typeof logs === 'function' ? logs(ctx, opts.target) : logger(ctx, opts.target)
+        typeof logs === 'function' ? logs(ctx, opts.target) : logger(ctx, httpProxyOpts)
       }
 
       if (events && typeof events === 'object') {
@@ -126,6 +123,18 @@ module.exports = (path, options) => {
 
 module.exports.proxy = proxy
 
-function logger (ctx, target) {
-  console.log('%s - %s %s proxy to -> %s', new Date().toISOString(), ctx.req.method, ctx.req.oldPath, new URL(ctx.req.url, target))
+function logger (ctx, httpProxyOpts) {
+  // Because the proxying is done by http-proxy, Getting correct proxied url needs imitating the behavior of http-proxy. **BE CAUTION** that here we rely on inner implementation of http-proxy.
+  // See https://github.com/http-party/node-http-proxy/blob/master/lib/http-proxy/common.js#L33
+  const outgoing = {}
+  let dest
+  try {
+    // eslint-disable-next-line node/no-deprecated-api
+    const httpProxyOpts2 = { ...httpProxyOpts, target: url.parse(httpProxyOpts.target || '') }
+    httpProxyCommonUtil.setupOutgoing(outgoing, httpProxyOpts2, ctx.req)
+    dest = new URL('', `${httpProxyOpts2.target.protocol}//${outgoing.host}${outgoing.path}`)
+  } catch (err) {
+    console.error('Error occurs when logging. Please check if target is a valid URL.')
+  }
+  console.log('%s - %s %s proxy to -> %s', new Date().toISOString(), ctx.req.method, ctx.req.oldPath, `${dest || httpProxyOpts.target}`)
 }

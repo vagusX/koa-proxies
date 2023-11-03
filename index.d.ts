@@ -18,7 +18,7 @@ declare namespace KoaProxies {
     }
   }
 
-  type IKoaProxiesOptionsFunc = (params: { [key: string]: string }, ctx: Koa.Context) => IBaseKoaProxiesOptions;
+  type IKoaProxiesOptionsFunc = (params: { [key: string]: string }, ctx: Koa.Context) => IBaseKoaProxiesOptions | false;
 
   type IKoaProxiesOptions = string | IBaseKoaProxiesOptions | IKoaProxiesOptionsFunc;
 }

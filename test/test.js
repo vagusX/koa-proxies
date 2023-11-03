@@ -80,7 +80,7 @@ describe('tests for koa proxies', () => {
     expect(ret2).to.have.status(404)
   })
 
-  it('test for options function', async () => {
+  it('test for options as function', async () => {
     // supports https://github.com/vagusX/koa-proxies/issues/17
     const pathRegex = /^\/octocat(\/|\/\w+)?$/
     const proxyMiddleware = proxy('/octocat', (params, ctx) => {
@@ -132,6 +132,94 @@ describe('tests for koa proxies', () => {
       .set('foo', 'bar')
       .send({ body: 'test' })
     expect(ret3).to.have.status(500)
+  })
+
+  it('can leverage path matching params', async () => {
+    const proxyMiddleware = proxy('/octocat/:status', (params, ctx) => {
+      return {
+        target: 'http://127.0.0.1:12306',
+        changeOrigin: true,
+        rewrite: () => `/${params.status}`,
+        logs: true
+      }
+    })
+
+    server = startServer(3000, proxyMiddleware)
+    const requester = chai.request(server).keepOpen()
+
+    const ret = await requester.get('/octocat/204')
+    expect(ret).to.have.status(204)
+    expect(ret).to.have.header('x-special-header', 'you see')
+    expect(ret.body).to.eqls({})
+
+    const ret1 = await requester.get('/octocat/200')
+    expect(ret1).to.have.status(200)
+    expect(ret1.body).to.eqls({ data: 'foo' })
+
+    const ret2 = await requester.get('/notfound')
+    expect(ret2).to.have.status(404)
+
+    const ret3 = await requester.get('/octocat/500')
+    expect(ret3).to.have.status(500)
+  })
+
+  it('test for options as function which can return `false` value and get bypassed', async () => {
+    const pathRegex = /^\/octocat(\/|\/\w+)?$/
+    const proxyMiddleware = proxy(
+      {
+        path: '/octocat'
+      },
+      (params, ctx) => {
+        // require header matching
+        if (ctx.headers['x-custom-header'] !== 'custom header value') {
+          return false
+        }
+        return {
+          target: 'http://127.0.0.1:12306',
+          changeOrigin: true,
+          rewrite: path => {
+            if (pathRegex.test(path)) {
+              const [, subpath] = pathRegex.exec(path)
+              if (subpath && subpath.startsWith('/bar')) {
+                return '/200'
+              }
+              return path.replace(pathRegex, '/204')
+            } else {
+              return path
+            }
+          },
+          logs: true
+        }
+      }
+    )
+    server = startServer(3000, proxyMiddleware, async (ctx) => {
+      if (ctx.url.endsWith('baz')) {
+        ctx.body = { data: 'Hello test' }
+      }
+    })
+
+    // Match both path and headers
+    const requester = chai.request(server).keepOpen()
+    const ret = await requester.get('/octocat').set('x-custom-header', 'custom header value')
+    expect(ret).to.have.status(204)
+    expect(ret).to.have.header('x-special-header', 'you see')
+    expect(ret.body).to.eqls({})
+
+    // Match both path and headers
+    const ret2 = await requester.get('/octocat/bar').set('x-custom-header', 'custom header value')
+    expect(ret2).to.have.status(200)
+    expect(ret2.body).to.eqls({ data: 'foo' })
+
+    // If request only match path, it should not be proxied
+    const ret3 = await requester.get('/octocat').set('x-custom-header', 'custom header value not matched')
+    expect(ret3).to.have.status(404)
+
+    const ret4 = await requester.get('/octocat/bar') // no header at all
+    expect(ret4).to.have.status(404)
+
+    const ret5 = await requester.get('/octocat/bar/baz') // no header at all, but match other middleware
+    expect(ret5).to.have.status(200)
+    expect(ret5.body).to.eqls({ data: 'Hello test' })
   })
 
   it('should bypass when path not matched', async () => {
@@ -328,6 +416,25 @@ describe('tests for koa proxies', () => {
     console.log.restore()
   })
 
+  it('log with correct outgoing url', async () => {
+    // spies
+    const logSpy = sinon.spy(console, 'log')
+
+    const proxyMiddleware = proxy('/baz', {
+      target: 'http://127.0.0.1:12306/foo/bar',
+      changeOrigin: true,
+      prependPath: false,
+      logs: true
+    })
+
+    server = startServer(3000, proxyMiddleware)
+
+    await chai.request(server).get('/baz')
+    const logSpyCall = logSpy.getCall(0)
+    chai.expect(logSpyCall.args).to.contains('http://127.0.0.1:12306/baz')
+    console.log.restore()
+  })
+
   it('log function', async () => {
     // spies
     const logSpy = sinon.spy()
@@ -344,17 +451,55 @@ describe('tests for koa proxies', () => {
     sinon.assert.calledOnce(logSpy)
   })
 
-  it.skip('test using github API', async () => {
-    const proxyMiddleware = proxy('/octocat', {
-      target: 'https://api.github.com/users',
+  it('log while error occurs', async () => {
+    // spies
+    const logSpy = sinon.spy(console, 'error')
+
+    const proxyMiddleware = proxy('/200', {
+      target: 'abc.com', // should be prepended with http(s)://
       changeOrigin: true,
-      rewrite: path => path.replace(/^\/octocat(\/|\/\w+)?$/, '/vagusx'),
       logs: true
     })
 
     server = startServer(3000, proxyMiddleware)
 
-    const ret = await chai.request(server).get('/octocat')
+    await chai.request(server).get('/200')
+    sinon.assert.called(logSpy)
+    console.error.restore()
+  })
+
+  it('test using github API', async () => {
+    const proxyMiddleware = proxy('/octocat', {
+      target: 'https://api.github.com/users/',
+      changeOrigin: true,
+      rewrite: path => path.replace(/^\/octocat(\/|\/\w+)?$/, '/vagusx'),
+      logs: true,
+      events: {
+        proxyReq: (proxyReq) => {
+          expect(new URL('', `${proxyReq.protocol}//${proxyReq.getHeaders().host}${proxyReq.path}`).toString()).to.equal('https://api.github.com/users/vagusx')
+        }
+      }
+    })
+
+    server = startServer(3000, proxyMiddleware)
+
+    const ret = await chai.request(server).get('/octocat').set('user-agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36 Edg/118.0.2088.69')
+    expect(ret).to.have.status(200)
+  })
+
+  it('test using github API with another configuration', async () => {
+    const proxyMiddleware = proxy('/octocat/:name', (params) => {
+      return {
+        target: 'https://api.github.com/',
+        changeOrigin: true,
+        rewrite: () => `/users/${params.name}`,
+        logs: true
+      }
+    })
+
+    server = startServer(3000, proxyMiddleware)
+
+    const ret = await chai.request(server).get('/octocat/vagusx').set('user-agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36 Edg/118.0.2088.69')
     expect(ret).to.have.status(200)
   })
 })
