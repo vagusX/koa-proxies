@@ -469,15 +469,15 @@ describe('tests for koa proxies', () => {
   })
 
   it('test using github API', async () => {
+    const proxyReqSpy = sinon.spy()
+
     const proxyMiddleware = proxy('/octocat', {
       target: 'https://api.github.com/users/',
       changeOrigin: true,
       rewrite: path => path.replace(/^\/octocat(\/|\/\w+)?$/, '/vagusx'),
       logs: true,
       events: {
-        proxyReq: (proxyReq) => {
-          expect(new URL('', `${proxyReq.protocol}//${proxyReq.getHeaders().host}${proxyReq.path}`).toString()).to.equal('https://api.github.com/users/vagusx')
-        }
+        proxyReq: proxyReqSpy
       }
     })
 
@@ -485,6 +485,10 @@ describe('tests for koa proxies', () => {
 
     const ret = await chai.request(server).get('/octocat').set('user-agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36 Edg/118.0.2088.69')
     expect(ret).to.have.status(200)
+    sinon.assert.called(proxyReqSpy)
+    const proxyReq = proxyReqSpy.args[0][0]
+    // notice that `proxyReq.protocol` would be undefined in node10
+    expect(new URL('', `${proxyReq.protocol || 'https:'}//${proxyReq.getHeaders().host}${proxyReq.path}`).toString()).to.equal('https://api.github.com/users/vagusx')
   })
 
   it('test using github API with another configuration', async () => {
