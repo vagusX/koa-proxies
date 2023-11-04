@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.12.4](https://github.com/vagusX/koa-proxies/compare/v0.12.3...v0.12.4) (2023-11-04)
+
+
+### Features
+
+* options function return false, fix default logger ([#74](https://github.com/vagusX/koa-proxies/issues/74)) ([9928ae1](https://github.com/vagusX/koa-proxies/commit/9928ae1435562d2da7aa82ad2b2cecce13c3f8fd))
+
 ### [0.12.3](https://github.com/vagusX/koa-proxies/compare/v0.12.2...v0.12.3) (2022-12-05)
 
 
