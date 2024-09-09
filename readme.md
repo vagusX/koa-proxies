@@ -1,6 +1,6 @@
 # Koa Proxies
 
-![NPM](https://img.shields.io/npm/v/koa-proxies.svg)
+<!-- ![NPM](https://img.shields.io/npm/v/koa-proxies.svg) -->
 
 [![Node.js CI](https://github.com/vagusX/koa-proxies/actions/workflows/node.js.yml/badge.svg)](https://github.com/vagusX/koa-proxies/actions/workflows/node.js.yml)
 [![Coverage](https://img.shields.io/codecov/c/github/vagusX/koa-proxies.svg)](https://codecov.io/gh/vagusX/koa-proxies)
