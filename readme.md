@@ -81,6 +81,24 @@ app.use(proxy('/octocat/:name', (params, ctx) => {
 Moreover, if the `options` function return `false`, then the proxy will be bypassed. This allows the middleware to bail out even if path matching succeeds, which could be helpful if you need complex logic to determine whether to proxy or not.
 
 
+### TypeScript
+
+Pass your application's state and context types to type the options and logging
+callbacks, as well as the returned middleware:
+
+```ts
+import proxy = require('koa-proxies')
+
+proxy<{ userId: string }, { tenant: string }>('/api', (params, ctx) => ({
+  target: `https://${ctx.tenant}.example.com`,
+  logs: ctx => console.log(ctx.state.userId)
+}))
+```
+
+These types describe fields provided by your application; they do not create or
+validate those fields at runtime. Existing calls without type arguments and
+options callbacks returning `false` remain supported.
+
 ### Attention
 
 Please make sure that `koa-proxies` is in front of `koa-bodyparser` to avoid this [issue 55](https://github.com/vagusX/koa-proxies/issues/55)
