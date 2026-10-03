@@ -33,6 +33,22 @@ jobs:
         name: coverage
         path: coverage/
 
+  fresh-dependencies:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [12.x, 14.x, 16.x, 18.x, 20.x, 22.x, 24.x]
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+    # A clean checkout has no node_modules or hidden install lockfile.
+    # Ignore the committed lockfile and resolve the declared dependency ranges.
+    - run: npm install --package-lock=false
+    - run: npm run ci
+
   types:
     runs-on: ubuntu-latest
     steps:

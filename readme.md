@@ -123,6 +123,22 @@ npm ci
 npm run ci
 ```
 
+This uses the committed lockfile for a reproducible baseline. CI also runs the
+same lint, runtime tests and coverage checks with freshly resolved dependencies
+on every Node version in the matrix. To reproduce that check, use a fresh
+checkout with no `node_modules` and run:
+
+```sh
+npm install --package-lock=false
+npm run ci
+```
+
+The second install ignores the repository lockfile and resolves the ranges in
+`package.json`. Failures in either installation mode fail CI. A library's
+lockfile does not constrain its consumers' dependency versions: these checks
+cover the locked baseline and a fresh resolution, not every possible downstream
+dependency combination.
+
 Runtime tests use local HTTP fixtures and run on Node 12, 14, 16, 18, 20, 22 and
 24 in CI. Older versions remain compatibility checks, not security-support
 recommendations. Coverage is saved as a `coverage` artifact in the
