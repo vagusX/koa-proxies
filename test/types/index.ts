@@ -39,6 +39,17 @@ const typedMiddleware = proxy<State, Context>('/api/:id', (params, ctx) => {
     }
   };
 });
+// Protect the returned middleware's context, not just the callback parameters.
+declare const returnedContext: Parameters<typeof typedMiddleware>[0];
+const returnedUserId: string = returnedContext.state.userId;
+const returnedTenant: string = returnedContext.tenant;
+// @ts-expect-error Returned middleware must preserve custom state types.
+returnedContext.state.userId.toFixed(2);
+// @ts-expect-error Returned middleware must reject misspelled state fields.
+returnedContext.state.userID;
+// @ts-expect-error Returned middleware must preserve custom context types.
+returnedContext.tenant.toFixed(2);
+
 const typedApp = new Koa<State, Context>();
 typedApp.use(typedMiddleware);
 typedApp.use(middleware);

@@ -3,7 +3,6 @@
 ![NPM](https://img.shields.io/npm/v/koa-proxies.svg)
 
 [![Node.js CI](https://github.com/vagusX/koa-proxies/actions/workflows/node.js.yml/badge.svg)](https://github.com/vagusX/koa-proxies/actions/workflows/node.js.yml)
-[![Coverage](https://img.shields.io/codecov/c/github/vagusX/koa-proxies.svg)](https://codecov.io/gh/vagusX/koa-proxies)
 [![NPM Downloads](https://img.shields.io/npm/dm/koa-proxies.svg)](https://www.npmjs.com/package/koa-proxies)
 [![Greenkeeper badge](https://badges.greenkeeper.io/vagusX/koa-proxies.svg)](https://greenkeeper.io/)
 
@@ -116,5 +115,20 @@ app.use(proxy('/user', {
 
 app.use(bodyParser())
 ```
+
+## Development checks
+
+```sh
+npm ci
+npm run ci
+```
+
+Runtime tests use local HTTP fixtures and run on Node 12, 14, 16, 18, 20, 22 and
+24 in CI. Older versions remain compatibility checks, not security-support
+recommendations. Coverage is saved as a `coverage` artifact in the
+[CI run](https://github.com/vagusX/koa-proxies/actions/workflows/node.js.yml).
+
+Type declaration checks use a separate modern toolchain; see
+[test/types](test/types/README.md) for the locked setup and commands.
 
 [![JavaScript Style Guide](https://cdn.rawgit.com/feross/standard/master/badge.svg)](https://github.com/feross/standard)
