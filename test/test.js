@@ -252,7 +252,7 @@ describe('tests for koa proxies', () => {
   })
 
   it('503', async () => {
-    // Hold the target's port until the proxy has acquired a different port.
+    // Keep the target listening so the proxy server cannot reuse its port.
     const proxyMiddleware = proxy('/octocat', {
       target: targetUrl,
       changeOrigin: true,
@@ -262,6 +262,7 @@ describe('tests for koa proxies', () => {
 
     server = await startServer(proxyMiddleware)
 
+    // Close the target to trigger ECONNREFUSED (503).
     await closeServer(targetServer)
     const ret = await request(server, '/octocat')
     expect(ret.status).to.equal(503)

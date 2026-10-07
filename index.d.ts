@@ -9,10 +9,10 @@ declare function KoaProxies<StateT = Koa.DefaultState, ContextT = Koa.DefaultCon
 ): Koa.Middleware<StateT, ContextT>;
 
 declare namespace KoaProxies {
-  interface IBaseKoaProxiesOptions<ContextT = Koa.Context> {
+  interface IBaseKoaProxiesOptions<FullContextT = Koa.Context> {
     target: string;
     changeOrigin?: boolean;
-    logs?: boolean | ((ctx: ContextT, target: string) => void);
+    logs?: boolean | ((ctx: FullContextT, target: string) => void);
     agent?: any;
     headers?: {[key: string]: string};
     rewrite?: (path: string) => string;
@@ -23,11 +23,11 @@ declare namespace KoaProxies {
     }
   }
 
-  type IKoaProxiesOptionsFunc<ContextT = Koa.Context> = (
-    params: { [key: string]: string }, ctx: ContextT
-  ) => IBaseKoaProxiesOptions<ContextT> | false;
+  type IKoaProxiesOptionsFunc<FullContextT = Koa.Context> = (
+    params: { [key: string]: string }, ctx: FullContextT
+  ) => IBaseKoaProxiesOptions<FullContextT> | false;
 
-  type IKoaProxiesOptions<ContextT = Koa.Context> = string | IBaseKoaProxiesOptions<ContextT> | IKoaProxiesOptionsFunc<ContextT>;
+  type IKoaProxiesOptions<FullContextT = Koa.Context> = string | IBaseKoaProxiesOptions<FullContextT> | IKoaProxiesOptionsFunc<FullContextT>;
 }
 
 export = KoaProxies;
