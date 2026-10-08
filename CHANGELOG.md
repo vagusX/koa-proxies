@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.12.5](https://github.com/vagusX/koa-proxies/compare/v0.12.4...v0.12.5) (2026-10-08)
+
+
+### Features
+
+* **types:** support custom Koa context while preserving compatibility ([#83](https://github.com/vagusX/koa-proxies/issues/83)) ([009d127](https://github.com/vagusX/koa-proxies/commit/009d1276e27713f5302c75ac604b497261fd62b3)), closes [#77](https://github.com/vagusX/koa-proxies/issues/77)
+
 ### [0.12.4](https://github.com/vagusX/koa-proxies/compare/v0.12.3...v0.12.4) (2023-11-04)
 
 
