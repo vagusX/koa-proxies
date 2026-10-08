@@ -1,7 +1,7 @@
 {
   "name": "koa-proxies",
   "description": "Http Proxy Middleware for Koa@2.x/next",
-  "version": "0.12.4",
+  "version": "0.12.5",
   "keywords": [
     "koa",
     "middleware",
@@ -12,11 +12,12 @@
   "typings": "index.d.ts",
   "scripts": {
     "test": "nyc mocha",
-    "coverage": "nyc report --reporter=lcov --reporter=html && codecov -f .nyc_output/*.json",
-    "ci": "npm run test && npm run coverage",
+    "coverage": "nyc report --reporter=lcov --reporter=html",
+    "ci": "npm run lint && npm test && npm run coverage",
     "lint": "eslint index.js test/",
     "version": "standard-version",
-    "pub": "npm run version && npm publish"
+    "pub": "npm run version && npm publish",
+    "test:types": "npm --prefix test/types test"
   },
   "repository": {
     "type": "git",
@@ -43,10 +44,7 @@
   "devDependencies": {
     "@commitlint/cli": "^8.2.0",
     "@commitlint/config-conventional": "^8.2.0",
-    "@types/koa": "^2.11.0",
     "chai": "^4.1.2",
-    "chai-http": "^4.0.0",
-    "codecov": "^3.0.4",
     "eslint": "^6.5.1",
     "eslint-config-standard": "^14.1.0",
     "eslint-plugin-import": "^2.18.2",
@@ -60,7 +58,6 @@
     "mocha": "^8.2.1",
     "nyc": "^15.1.0",
     "sinon": "^9.2.1",
-    "sinon-chai": "^3.5.0",
     "standard-version": "^9.3.2"
   },
   "dependencies": {

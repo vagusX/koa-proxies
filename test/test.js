@@ -1,21 +1,18 @@
 const chai = require('chai')
-const chaiHttp = require('chai-http')
-const sinonChai = require('sinon-chai')
 const sinon = require('sinon')
 
 const proxy = require('..')
 
-const { startServer, sleep } = require('./util')
+const { startServer, closeServer, request } = require('./util')
 
-chai.use(sinonChai)
-chai.use(chaiHttp)
 const expect = chai.expect
 
 describe('tests for koa proxies', () => {
   let server
   let targetServer
-  beforeEach(() => {
-    targetServer = startServer(12306, async (ctx, next) => {
+  let targetUrl
+  beforeEach(async () => {
+    targetServer = await startServer(async (ctx, next) => {
       switch (ctx.path) {
         case '/204':
           ctx.set('x-special-header', 'you see')
@@ -25,8 +22,11 @@ describe('tests for koa proxies', () => {
           ctx.body = { data: 'foo' }
           break
         case '/timeout':
-          await sleep(2000)
-          ctx.body = { data: 'timeout' }
+          // Deliberately leave the response open until the proxy aborts it.
+          ctx.respond = false
+          break
+        case '/users/octocat':
+          ctx.body = { login: 'octocat', path: ctx.url, host: ctx.host }
           break
         case '/500':
           ctx.status = 500
@@ -38,17 +38,18 @@ describe('tests for koa proxies', () => {
           return next()
       }
     })
+    targetUrl = `http://127.0.0.1:${targetServer.address().port}`
   })
 
-  afterEach(() => {
-    targetServer && targetServer.close()
-    server && server.close()
+  afterEach(async () => {
+    sinon.restore()
+    await Promise.all([closeServer(server), closeServer(targetServer)])
   })
 
   it('should match and get correct response', async () => {
     const pathRegex = /^\/octocat(\/|\/\w+)?$/
     const proxyMiddleware = proxy('/octocat', {
-      target: 'http://127.0.0.1:12306',
+      target: targetUrl,
       changeOrigin: true,
       rewrite: path => {
         if (pathRegex.test(path)) {
@@ -64,20 +65,19 @@ describe('tests for koa proxies', () => {
       logs: true
     })
 
-    server = startServer(3000, proxyMiddleware)
-    const requester = chai.request(server).keepOpen()
+    server = await startServer(proxyMiddleware)
 
-    const ret = await requester.get('/octocat')
-    expect(ret).to.have.status(204)
-    expect(ret).to.have.header('x-special-header', 'you see')
-    expect(ret.body).to.eqls({})
+    const ret = await request(server, '/octocat')
+    expect(ret.status).to.equal(204)
+    expect(ret.headers['x-special-header']).to.equal('you see')
+    expect(ret.body).to.equal('')
 
-    const ret1 = await requester.get('/octocat/bar')
-    expect(ret1).to.have.status(200)
+    const ret1 = await request(server, '/octocat/bar')
+    expect(ret1.status).to.equal(200)
     expect(ret1.body).to.eqls({ data: 'foo' })
 
-    const ret2 = await requester.get('/notfound')
-    expect(ret2).to.have.status(404)
+    const ret2 = await request(server, '/notfound')
+    expect(ret2.status).to.equal(404)
   })
 
   it('test for options as function', async () => {
@@ -86,7 +86,7 @@ describe('tests for koa proxies', () => {
     const proxyMiddleware = proxy('/octocat', (params, ctx) => {
       if (ctx.headers.foo === 'bar') {
         return {
-          target: 'http://127.0.0.1:12306',
+          target: targetUrl,
           changeOrigin: true,
           rewrite: path => path.replace(/^\/octocat(\/|\/\w+)?$/, '/500'),
           logs: true
@@ -94,7 +94,7 @@ describe('tests for koa proxies', () => {
       }
 
       return {
-        target: 'http://127.0.0.1:12306',
+        target: targetUrl,
         changeOrigin: true,
         rewrite: path => {
           if (pathRegex.test(path)) {
@@ -111,56 +111,55 @@ describe('tests for koa proxies', () => {
       }
     })
 
-    server = startServer(3000, proxyMiddleware)
-    const requester = chai.request(server).keepOpen()
+    server = await startServer(proxyMiddleware)
 
-    const ret = await requester.get('/octocat')
-    expect(ret).to.have.status(204)
-    expect(ret).to.have.header('x-special-header', 'you see')
-    expect(ret.body).to.eqls({})
+    const ret = await request(server, '/octocat')
+    expect(ret.status).to.equal(204)
+    expect(ret.headers['x-special-header']).to.equal('you see')
+    expect(ret.body).to.equal('')
 
-    const ret1 = await requester.get('/octocat/bar')
-    expect(ret1).to.have.status(200)
+    const ret1 = await request(server, '/octocat/bar')
+    expect(ret1.status).to.equal(200)
     expect(ret1.body).to.eqls({ data: 'foo' })
 
-    const ret2 = await requester.get('/notfound')
-    expect(ret2).to.have.status(404)
+    const ret2 = await request(server, '/notfound')
+    expect(ret2.status).to.equal(404)
 
     // headers matched for 500
-    const ret3 = await chai.request(server)
-      .post('/octocat')
-      .set('foo', 'bar')
-      .send({ body: 'test' })
-    expect(ret3).to.have.status(500)
+    const ret3 = await request(server, '/octocat', {
+      method: 'POST',
+      headers: { foo: 'bar' },
+      body: { body: 'test' }
+    })
+    expect(ret3.status).to.equal(500)
   })
 
   it('can leverage path matching params', async () => {
     const proxyMiddleware = proxy('/octocat/:status', (params, ctx) => {
       return {
-        target: 'http://127.0.0.1:12306',
+        target: targetUrl,
         changeOrigin: true,
         rewrite: () => `/${params.status}`,
         logs: true
       }
     })
 
-    server = startServer(3000, proxyMiddleware)
-    const requester = chai.request(server).keepOpen()
+    server = await startServer(proxyMiddleware)
 
-    const ret = await requester.get('/octocat/204')
-    expect(ret).to.have.status(204)
-    expect(ret).to.have.header('x-special-header', 'you see')
-    expect(ret.body).to.eqls({})
+    const ret = await request(server, '/octocat/204')
+    expect(ret.status).to.equal(204)
+    expect(ret.headers['x-special-header']).to.equal('you see')
+    expect(ret.body).to.equal('')
 
-    const ret1 = await requester.get('/octocat/200')
-    expect(ret1).to.have.status(200)
+    const ret1 = await request(server, '/octocat/200')
+    expect(ret1.status).to.equal(200)
     expect(ret1.body).to.eqls({ data: 'foo' })
 
-    const ret2 = await requester.get('/notfound')
-    expect(ret2).to.have.status(404)
+    const ret2 = await request(server, '/notfound')
+    expect(ret2.status).to.equal(404)
 
-    const ret3 = await requester.get('/octocat/500')
-    expect(ret3).to.have.status(500)
+    const ret3 = await request(server, '/octocat/500')
+    expect(ret3.status).to.equal(500)
   })
 
   it('test for options as function which can return `false` value and get bypassed', async () => {
@@ -175,7 +174,7 @@ describe('tests for koa proxies', () => {
           return false
         }
         return {
-          target: 'http://127.0.0.1:12306',
+          target: targetUrl,
           changeOrigin: true,
           rewrite: path => {
             if (pathRegex.test(path)) {
@@ -192,96 +191,108 @@ describe('tests for koa proxies', () => {
         }
       }
     )
-    server = startServer(3000, proxyMiddleware, async (ctx) => {
+    server = await startServer(proxyMiddleware, async (ctx) => {
       if (ctx.url.endsWith('baz')) {
         ctx.body = { data: 'Hello test' }
       }
     })
 
     // Match both path and headers
-    const requester = chai.request(server).keepOpen()
-    const ret = await requester.get('/octocat').set('x-custom-header', 'custom header value')
-    expect(ret).to.have.status(204)
-    expect(ret).to.have.header('x-special-header', 'you see')
-    expect(ret.body).to.eqls({})
+    const ret = await request(server, '/octocat', { headers: { 'x-custom-header': 'custom header value' } })
+    expect(ret.status).to.equal(204)
+    expect(ret.headers['x-special-header']).to.equal('you see')
+    expect(ret.body).to.equal('')
 
     // Match both path and headers
-    const ret2 = await requester.get('/octocat/bar').set('x-custom-header', 'custom header value')
-    expect(ret2).to.have.status(200)
+    const ret2 = await request(server, '/octocat/bar', { headers: { 'x-custom-header': 'custom header value' } })
+    expect(ret2.status).to.equal(200)
     expect(ret2.body).to.eqls({ data: 'foo' })
 
     // If request only match path, it should not be proxied
-    const ret3 = await requester.get('/octocat').set('x-custom-header', 'custom header value not matched')
-    expect(ret3).to.have.status(404)
+    const ret3 = await request(server, '/octocat', { headers: { 'x-custom-header': 'custom header value not matched' } })
+    expect(ret3.status).to.equal(404)
 
-    const ret4 = await requester.get('/octocat/bar') // no header at all
-    expect(ret4).to.have.status(404)
+    const ret4 = await request(server, '/octocat/bar') // no header at all
+    expect(ret4.status).to.equal(404)
 
-    const ret5 = await requester.get('/octocat/bar/baz') // no header at all, but match other middleware
-    expect(ret5).to.have.status(200)
+    const ret5 = await request(server, '/octocat/bar/baz') // no header at all, but match other middleware
+    expect(ret5.status).to.equal(200)
     expect(ret5.body).to.eqls({ data: 'Hello test' })
   })
 
   it('should bypass when path not matched', async () => {
     const proxyMiddleware = proxy('/octocat', {
-      target: 'http://127.0.0.1:12306',
+      target: targetUrl,
       changeOrigin: true,
       rewrite: path => path.replace(/^\/octocat(\/|\/\w+)?$/, '/200'),
       logs: true
     })
 
-    server = startServer(3000, proxyMiddleware, async ctx => {
+    server = await startServer(proxyMiddleware, async ctx => {
       ctx.body = { data: 'Hello test' }
     })
 
-    const ret = await chai.request(server).get('/testcat')
-    expect(ret).to.have.status(200)
+    const ret = await request(server, '/testcat')
+    expect(ret.status).to.equal(200)
     expect(ret.body).to.eqls({ data: 'Hello test' })
   })
 
   it('500', async () => {
     const proxyMiddleware = proxy('/octocat', {
-      target: 'http://127.0.0.1:12306',
+      target: targetUrl,
       changeOrigin: true,
       rewrite: path => path.replace(/^\/octocat(\/|\/\w+)?$/, '/500'),
       logs: true
     })
 
-    server = startServer(3000, proxyMiddleware)
+    server = await startServer(proxyMiddleware)
 
-    const ret = await chai.request(server).get('/octocat')
-    expect(ret).to.have.status(500)
+    const ret = await request(server, '/octocat')
+    expect(ret.status).to.equal(500)
   })
 
   it('503', async () => {
+    // Keep the target listening so the proxy server cannot reuse its port.
     const proxyMiddleware = proxy('/octocat', {
-      // wrong port cause ECONNREFUSED
-      target: 'http://127.0.0.1:12305',
+      target: targetUrl,
       changeOrigin: true,
       rewrite: path => path.replace(/^\/octocat(\/|\/\w+)?$/, '/200'),
       logs: true
     })
 
-    server = startServer(3000, proxyMiddleware)
+    server = await startServer(proxyMiddleware)
 
-    const ret = await chai.request(server).get('/octocat')
-    expect(ret).to.have.status(503)
+    // Close the target to trigger ECONNREFUSED (503).
+    await closeServer(targetServer)
+    const ret = await request(server, '/octocat')
+    expect(ret.status).to.equal(503)
   })
 
-  it('504', async () => {
-    const proxyMiddleware = proxy('/timeout', {
-      target: 'http://127.0.0.1:12306',
-      changeOrigin: true,
-      logs: true
+  it('awaits a real upstream timeout', async () => {
+    const errorSpy = sinon.spy()
+    server = await startServer(proxy('/timeout', {
+      target: targetUrl,
+      proxyTimeout: 50,
+      events: { error: errorSpy }
+    }))
+
+    const ret = await request(server, '/timeout')
+    // http-proxy aborts timed-out requests with ECONNRESET, which maps to 500.
+    expect(ret.status).to.equal(500)
+    sinon.assert.calledOnce(errorSpy)
+    expect(errorSpy.firstCall.args[0].code).to.equal('ECONNRESET')
+  })
+
+  it('maps an ETIMEOUT proxy error to 504', async () => {
+    const web = sinon.stub(proxy.proxy, 'web').callsFake((req, res, options, callback) => {
+      callback(Object.assign(new Error('Upstream timed out'), { code: 'ETIMEOUT' }))
     })
+    server = await startServer(proxy('/timeout', { target: targetUrl }))
 
-    server = startServer(3000, proxyMiddleware)
-
-    chai.request(server).get('/timeout')
-      .then(ret => {
-        expect(ret).to.have.status(504)
-      })
-  }).timeout(200)
+    const ret = await request(server, '/timeout')
+    expect(ret.status).to.equal(504)
+    sinon.assert.calledOnce(web)
+  })
 
   it('events for a single middleware', async () => {
     // spies
@@ -289,7 +300,7 @@ describe('tests for koa proxies', () => {
     const proxyResSpy = sinon.spy()
 
     const proxyMiddleware = proxy('/200', {
-      target: 'http://127.0.0.1:12306',
+      target: targetUrl,
       changeOrigin: true,
       logs: true,
       events: {
@@ -298,9 +309,9 @@ describe('tests for koa proxies', () => {
       }
     })
 
-    server = startServer(3000, proxyMiddleware)
+    server = await startServer(proxyMiddleware)
 
-    await chai.request(server).get('/200')
+    await request(server, '/200')
     sinon.assert.calledOnce(proxyReqSpy)
     sinon.assert.calledOnce(proxyResSpy)
   })
@@ -313,7 +324,7 @@ describe('tests for koa proxies', () => {
     const proxyTwoResSpy = sinon.spy()
 
     const proxyOneMiddleware = proxy('/200', {
-      target: 'http://127.0.0.1:12306',
+      target: targetUrl,
       changeOrigin: true,
       logs: true,
       events: {
@@ -323,7 +334,7 @@ describe('tests for koa proxies', () => {
     })
 
     const proxyTwoMiddleware = proxy('/204', {
-      target: 'http://127.0.0.1:12306',
+      target: targetUrl,
       changeOrigin: true,
       logs: true,
       events: {
@@ -332,13 +343,13 @@ describe('tests for koa proxies', () => {
       }
     })
 
-    server = startServer(3000, proxyOneMiddleware, proxyTwoMiddleware)
+    server = await startServer(proxyOneMiddleware, proxyTwoMiddleware)
 
-    await chai.request(server).get('/200')
+    await request(server, '/200')
     sinon.assert.calledOnce(proxyOneReqSpy)
     sinon.assert.calledOnce(proxyOneResSpy)
 
-    await chai.request(server).get('/204')
+    await request(server, '/204')
     sinon.assert.calledOnce(proxyTwoReqSpy)
     sinon.assert.calledOnce(proxyTwoResSpy)
   })
@@ -348,7 +359,7 @@ describe('tests for koa proxies', () => {
     const proxyInvalidEventSpy = sinon.spy()
 
     const proxyMiddleware = proxy('/200', {
-      target: 'http://127.0.0.1:12306',
+      target: targetUrl,
       changeOrigin: true,
       logs: true,
       events: {
@@ -356,25 +367,25 @@ describe('tests for koa proxies', () => {
       }
     })
 
-    server = startServer(3000, proxyMiddleware)
+    server = await startServer(proxyMiddleware)
 
-    await chai.request(server).get('/200')
+    await request(server, '/200')
     sinon.assert.notCalled(proxyInvalidEventSpy)
   })
 
   describe('when an error handler is specified', () => {
     let options
 
-    beforeEach(() => {
+    beforeEach(async () => {
       options = {
-        target: 'http://127.0.0.1:12306',
+        target: targetUrl,
         changeOrigin: true,
         events: {}
       }
 
       const proxyMiddleware = proxy('/error', options)
 
-      server = startServer(3000, proxyMiddleware)
+      server = await startServer(proxyMiddleware)
     })
 
     it('does not set the status in the default error handler when events.error is specified and ends the response', async () => {
@@ -382,9 +393,9 @@ describe('tests for koa proxies', () => {
         res.writeHead(505, 'Something went wrong. And we are reporting a custom error message.').end()
       })
 
-      const ret = await chai.request(server).get('/error')
-      expect(ret).to.have.status(505)
-      expect(ret.res.statusMessage).to.eql('Something went wrong. And we are reporting a custom error message.')
+      const ret = await request(server, '/error')
+      expect(ret.status).to.equal(505)
+      expect(ret.statusMessage).to.eql('Something went wrong. And we are reporting a custom error message.')
 
       sinon.assert.calledOnce(options.events.error)
     })
@@ -392,8 +403,8 @@ describe('tests for koa proxies', () => {
     it('does set the status in the default error handler when events.error is specified but does not end the response', async () => {
       options.events.error = sinon.spy()
 
-      const ret = await chai.request(server).get('/error')
-      expect(ret).to.have.status(500)
+      const ret = await request(server, '/error')
+      expect(ret.status).to.equal(500)
 
       sinon.assert.calledOnce(options.events.error)
     })
@@ -404,14 +415,14 @@ describe('tests for koa proxies', () => {
     const logSpy = sinon.spy(console, 'log')
 
     const proxyMiddleware = proxy('/200', {
-      target: 'http://127.0.0.1:12306',
+      target: targetUrl,
       changeOrigin: true,
       logs: true
     })
 
-    server = startServer(3000, proxyMiddleware)
+    server = await startServer(proxyMiddleware)
 
-    await chai.request(server).get('/200')
+    await request(server, '/200')
     sinon.assert.called(logSpy)
     console.log.restore()
   })
@@ -421,17 +432,17 @@ describe('tests for koa proxies', () => {
     const logSpy = sinon.spy(console, 'log')
 
     const proxyMiddleware = proxy('/baz', {
-      target: 'http://127.0.0.1:12306/foo/bar',
+      target: `${targetUrl}/foo/bar`,
       changeOrigin: true,
       prependPath: false,
       logs: true
     })
 
-    server = startServer(3000, proxyMiddleware)
+    server = await startServer(proxyMiddleware)
 
-    await chai.request(server).get('/baz')
+    await request(server, '/baz')
     const logSpyCall = logSpy.getCall(0)
-    chai.expect(logSpyCall.args).to.contains('http://127.0.0.1:12306/baz')
+    chai.expect(logSpyCall.args).to.contains(`${targetUrl}/baz`)
     console.log.restore()
   })
 
@@ -440,20 +451,23 @@ describe('tests for koa proxies', () => {
     const logSpy = sinon.spy()
 
     const proxyMiddleware = proxy('/200', {
-      target: 'http://127.0.0.1:12306',
+      target: targetUrl,
       changeOrigin: true,
       logs: logSpy
     })
 
-    server = startServer(3000, proxyMiddleware)
+    server = await startServer(proxyMiddleware)
 
-    await chai.request(server).get('/200')
+    await request(server, '/200')
     sinon.assert.calledOnce(logSpy)
   })
 
   it('log while error occurs', async () => {
-    // spies
     const logSpy = sinon.spy(console, 'error')
+    // This test exercises logging; never make a network request to the invalid target.
+    sinon.stub(proxy.proxy, 'web').callsFake((req, res, options, callback) => {
+      callback(new Error('Invalid target'))
+    })
 
     const proxyMiddleware = proxy('/200', {
       target: 'abc.com', // should be prepended with http(s)://
@@ -461,49 +475,43 @@ describe('tests for koa proxies', () => {
       logs: true
     })
 
-    server = startServer(3000, proxyMiddleware)
+    server = await startServer(proxyMiddleware)
 
-    await chai.request(server).get('/200')
+    await request(server, '/200')
     sinon.assert.called(logSpy)
     console.error.restore()
   })
 
-  it('test using github API', async () => {
+  it('preserves the target base path when rewriting', async () => {
     const proxyReqSpy = sinon.spy()
-
-    const proxyMiddleware = proxy('/octocat', {
-      target: 'https://api.github.com/users/',
+    server = await startServer(proxy('/octocat', {
+      target: `${targetUrl}/users/`,
       changeOrigin: true,
-      rewrite: path => path.replace(/^\/octocat(\/|\/\w+)?$/, '/vagusx'),
-      logs: true,
-      events: {
-        proxyReq: proxyReqSpy
-      }
+      rewrite: () => '/octocat',
+      events: { proxyReq: proxyReqSpy }
+    }))
+
+    const ret = await request(server, '/octocat')
+    expect(ret.status).to.equal(200)
+    expect(ret.body).to.eql({
+      login: 'octocat', path: '/users/octocat', host: new URL(targetUrl).host
     })
-
-    server = startServer(3000, proxyMiddleware)
-
-    const ret = await chai.request(server).get('/octocat').set('user-agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36 Edg/118.0.2088.69')
-    expect(ret).to.have.status(200)
-    sinon.assert.called(proxyReqSpy)
-    const proxyReq = proxyReqSpy.args[0][0]
-    // notice that `proxyReq.protocol` would be undefined in node10
-    expect(new URL('', `${proxyReq.protocol || 'https:'}//${proxyReq.getHeaders().host}${proxyReq.path}`).toString()).to.equal('https://api.github.com/users/vagusx')
+    sinon.assert.calledOnce(proxyReqSpy)
+    const proxyReq = proxyReqSpy.firstCall.args[0]
+    expect(proxyReq.path).to.equal('/users/octocat')
+    expect(proxyReq.getHeader('host')).to.equal(new URL(targetUrl).host)
   })
 
-  it('test using github API with another configuration', async () => {
-    const proxyMiddleware = proxy('/octocat/:name', (params) => {
-      return {
-        target: 'https://api.github.com/',
-        changeOrigin: true,
-        rewrite: () => `/users/${params.name}`,
-        logs: true
-      }
-    })
+  it('rewrites path parameters against a local upstream', async () => {
+    server = await startServer(proxy('/octocat/:name', params => ({
+      target: targetUrl,
+      changeOrigin: true,
+      rewrite: () => `/users/${params.name}`
+    })))
 
-    server = startServer(3000, proxyMiddleware)
-
-    const ret = await chai.request(server).get('/octocat/vagusx').set('user-agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36 Edg/118.0.2088.69')
-    expect(ret).to.have.status(200)
+    const ret = await request(server, '/octocat/octocat')
+    expect(ret.status).to.equal(200)
+    expect(ret.body.login).to.equal('octocat')
+    expect(ret.body.path).to.equal('/users/octocat')
   })
 })
