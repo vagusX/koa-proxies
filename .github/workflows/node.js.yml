@@ -58,6 +58,31 @@ jobs:
     - run: npm install --package-lock=false
     - run: npm run ci
 
+  koa3:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [18.x, 24.x]
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: npm
+    - run: npm ci
+    - run: npm install --no-save --package-lock=false koa@3.0.1
+    - run: npm run ci
+    - name: Check Koa 3 type declarations
+      run: |
+        npm ci --prefix test/types
+        npm install --prefix test/types --no-save --package-lock=false @types/koa@3.0.3
+        npm run test:types
+    - name: Check the Koa 3 TypeScript sample
+      run: |
+        npm install --prefix samples/ts --package-lock=false
+        npm exec --prefix samples/ts -- tsc --project samples/ts/tsconfig.json --noEmit
+
   types:
     runs-on: ubuntu-latest
     steps:

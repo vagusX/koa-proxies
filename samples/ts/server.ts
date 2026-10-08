@@ -73,6 +73,6 @@ app.use(history({
 }))
 
 // static
-app.use(statics(path.resolve('examples/statics')))
+app.use(statics(path.resolve(__dirname, 'statics')))
 
 app.listen(12306, () => console.log('listening at port 12306'))

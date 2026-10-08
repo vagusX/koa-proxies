@@ -1,6 +1,6 @@
 {
   "name": "koa-proxies",
-  "description": "Http Proxy Middleware for Koa@2.x/next",
+  "description": "Http Proxy Middleware for Koa 2 and 3",
   "version": "0.12.5",
   "keywords": [
     "koa",
