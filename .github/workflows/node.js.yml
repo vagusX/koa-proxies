@@ -26,6 +26,15 @@ jobs:
         cache: npm
     - run: npm ci
     - run: npm run ci
+    - name: Upload coverage to Codecov
+      if: matrix.node-version == '24.x'
+      uses: codecov/codecov-action@0fb7174895f61a3b6b78fc075e0cd60383518dac # v5
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      with:
+        files: coverage/lcov.info
+        disable_search: true
+        fail_ci_if_error: true
     - name: Save coverage
       if: matrix.node-version == '24.x'
       uses: actions/upload-artifact@v4
