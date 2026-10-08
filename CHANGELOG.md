@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.12.6](https://github.com/vagusX/koa-proxies/compare/v0.12.5...v0.12.6) (2026-10-08)
+
+
+### Features
+
+* verify Koa 3 compatibility and fix TypeScript sample ([b6c54e0](https://github.com/vagusX/koa-proxies/commit/b6c54e0ec78352e36ea786dfd96098a1b2025ead))
+
+
+### Bug Fixes
+
+* samples/ts/package.json to reduce vulnerabilities ([ce3b1d8](https://github.com/vagusX/koa-proxies/commit/ce3b1d890b4ec01fcf012e92aca674af72448867))
+
 ### [0.12.5](https://github.com/vagusX/koa-proxies/compare/v0.12.4...v0.12.5) (2026-10-08)
 
 
