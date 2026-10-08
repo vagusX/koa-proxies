@@ -9,9 +9,9 @@
     "sourceMap": false,
     "outDir": "./dist",
     "baseUrl": "./",
-    "types": [
-      "../../../index.d.ts"
-    ]
+    "paths": {
+      "koa": ["node_modules/@types/koa"]
+    }
   },
   "exclude": ["node_modules"]
 }

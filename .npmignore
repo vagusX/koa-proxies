@@ -17,3 +17,4 @@ coverage
 .nyc_output
 samples/
 .circleci/
+.github/

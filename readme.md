@@ -6,7 +6,9 @@
 [![NPM Downloads](https://img.shields.io/npm/dm/koa-proxies.svg)](https://www.npmjs.com/package/koa-proxies)
 [![Greenkeeper badge](https://badges.greenkeeper.io/vagusX/koa-proxies.svg)](https://greenkeeper.io/)
 
-> [Koa@2.x/next](https://github.com/koajs/koa) middlware for http proxy
+> [Koa 2 and 3](https://github.com/koajs/koa) middleware for HTTP proxy
+
+Koa 3 requires Node.js 18 or newer. Koa 2 remains supported.
 
 Powered by [`http-proxy`](https://github.com/nodejitsu/node-http-proxy).
 
@@ -143,6 +145,9 @@ Runtime tests use local HTTP fixtures and run on Node 12, 14, 16, 18, 20, 22 and
 24 in CI. Older versions remain compatibility checks, not security-support
 recommendations. Coverage is saved as a `coverage` artifact in the
 [CI run](https://github.com/vagusX/koa-proxies/actions/workflows/node.js.yml).
+
+Koa 3.0.1 runtime tests, Koa 3 type declaration checks and the TypeScript sample
+compile check also run on Node 18 and 24.
 
 Type declaration checks use a separate modern toolchain; see
 [test/types](test/types/README.md) for the locked setup and commands.
